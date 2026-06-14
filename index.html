@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>小畫家 - 兒童著色</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; }
+  html,body { height:100%; overflow:hidden; font-family:"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif; }
+  body { background:#7ec8e3; }
+  .soundbtn {
+    position:fixed; top:12px; right:128px; z-index:60;
+    width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
+    font-size:22px; background:#ffffffcc; box-shadow:0 3px 0 rgba(0,0,0,.2);
+  }
+  .soundbtn:active { transform:translateY(3px); box-shadow:0 0 0 rgba(0,0,0,.2); }
+  .soundbtn.off { filter:grayscale(1) opacity(.6); }
+  .screen { position:fixed; inset:0; display:none; }
+  .screen.active { display:block; }
+
+  /* ---------- 共用背景 ---------- */
+  .sky { width:100%; height:100%;
+    background:linear-gradient(#5fc2ec 0%, #8fd6f0 55%, #bfe9f7 100%); }
+
+  /* ---------- 首頁 / 分類 ---------- */
+  #home .title {
+    position:absolute; top:6%; left:0; right:0; text-align:center;
+    font-size:13vw; font-weight:900; color:#ffd84d;
+    -webkit-text-stroke:6px #3a8a36; text-shadow:0 6px 0 rgba(0,0,0,.15);
+    letter-spacing:.3em;
+  }
+  .topbtn {
+    position:absolute; top:18px; padding:10px 18px; border:none; border-radius:16px;
+    font-size:18px; font-weight:800; color:#fff; cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,.2);
+  }
+  .topbtn:active { transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.2); }
+  #home .parent { left:18px; background:#9fd55b; }
+  #home .unlock { right:18px; background:#5bb84a; }
+  .blob {
+    position:absolute; left:50%; top:52%; transform:translate(-50%,-50%);
+    width:min(70vw,560px); height:min(70vw,560px);
+    display:grid; place-items:center;
+  }
+  .blob svg { width:100%; height:100%; filter:drop-shadow(0 8px 10px rgba(0,0,0,.15)); }
+  .enter-hint { position:absolute; bottom:6%; left:0; right:0; text-align:center;
+    color:#fff; font-size:4.5vw; font-weight:800; text-shadow:0 2px 4px rgba(0,0,0,.2);
+    animation:pulse 1.4s infinite; }
+  @keyframes pulse { 50%{opacity:.55} }
+
+  /* ---------- 動物選擇格 ---------- */
+  #grid .back { left:18px; top:18px; background:#7ec8e3; }
+  .grid-wrap {
+    position:absolute; inset:90px 4% 4% 4%;
+    display:grid; grid-template-columns:repeat(5,1fr); grid-auto-rows:1fr; gap:2.2vmin;
+    align-content:center;
+  }
+  .card {
+    background:#fff; border:5px solid #9fd836; border-radius:18px;
+    display:grid; place-items:center; cursor:pointer; position:relative; overflow:hidden;
+    box-shadow:0 5px 0 rgba(0,0,0,.12); transition:transform .08s;
+  }
+  .card:active { transform:scale(.94); }
+  .card svg { width:82%; height:82%; }
+  .card .lock {
+    position:absolute; right:6px; bottom:6px; width:26px; height:26px; border-radius:50%;
+    background:#7bc043; display:grid; place-items:center; font-size:15px; box-shadow:0 2px 3px rgba(0,0,0,.3);
+  }
+
+  /* ---------- 著色畫面 ---------- */
+  #paint .stage { position:absolute; inset:0 116px 0 0; background:#fff; display:grid; place-items:center; }
+  #paint .stage canvas { position:absolute; touch-action:none; }
+  #lineCv { pointer-events:none; }   /* 線稿層不攔截觸控，讓畫筆層收得到 */
+  #cvHome { left:14px; top:14px; position:absolute; z-index:5; background:#7ec8e3; padding:8px 14px; }
+
+  .panel {
+    position:absolute; right:0; top:0; bottom:0; width:116px;
+    background:linear-gradient(#79c3cf,#5aa9b5); display:flex; flex-direction:column; align-items:center;
+    box-shadow:-3px 0 8px rgba(0,0,0,.15); z-index:10; overflow:hidden;
+  }
+  /* 色帶：flex-basis 0 → 只吃「剩餘空間」，不會被內容撐到爆版 */
+  .color-area { position:relative; width:30px; margin:8px 0 2px; flex:1 1 0; min-height:60px; max-height:300px; display:flex; }
+  #colorStrip { width:30px; height:100%; border-radius:8px; box-shadow:inset 0 0 0 2px rgba(0,0,0,.15); }
+  #colorHandle {
+    position:absolute; left:-12px; width:0; height:0; pointer-events:none;
+    border-top:11px solid transparent; border-bottom:11px solid transparent; border-left:16px solid #6b6b6b;
+    transform:translateY(-11px);
+  }
+  /* 工具列 */
+  .tools { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:5px; padding:6px 6px 6px; }
+  .tool {
+    height:40px; border-radius:11px; border:none; cursor:pointer;
+    display:grid; place-items:center; font-size:21px; background:rgba(255,255,255,.0);
+    transition:transform .08s;
+  }
+  .tool.sel { background:rgba(255,255,255,.55); box-shadow:0 0 0 3px #ffd84d inset; transform:scale(1.05); }
+  .tool:active { transform:scale(.9); }
+  #curColor { flex:0 0 auto; width:46px; height:26px; border-radius:10px; border:3px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.3); margin-top:4px; }
+  .bottom { flex:0 0 auto; display:flex; gap:5px; padding:6px 0 12px; }
+  .bottom button {
+    width:34px; height:38px; border-radius:11px; border:none; cursor:pointer; font-size:17px;
+    background:#bfe2ea; box-shadow:0 3px 0 rgba(0,0,0,.18);
+  }
+  .bottom button:disabled { opacity:.35; box-shadow:none; }
+  .bottom button:active { transform:translateY(3px); box-shadow:0 0 0 rgba(0,0,0,.18); }
+</style>
+</head>
+<body>
+
+<button id="soundBtn" class="soundbtn" title="聲音開關">🔊</button>
+
+<!-- ============ 首頁 / 分類 ============ -->
+<section id="home" class="screen active">
+  <div class="sky"></div>
+  <button class="topbtn parent">👨‍👩‍👧 專為家長</button>
+  <div class="title">動 物</div>
+  <div class="blob" onclick="openGrid()">
+    <svg viewBox="0 0 200 200"><path d="M100 18c20-6 40 6 44 24 22-4 40 14 36 36 16 12 14 40-4 50 6 22-12 42-34 40-10 18-36 20-50 6-16 12-42 4-46-16-22 2-40-18-32-38C30 110 30 84 50 76 44 54 64 34 86 40c2-12 14-22 14-22z" fill="#8cc63f" stroke="#5a9a1e" stroke-width="3"/></svg>
+  </div>
+  <div class="enter-hint">▶ 點一下開始畫畫</div>
+</section>
+
+<!-- ============ 動物選擇格 ============ -->
+<section id="grid" class="screen">
+  <div class="sky"></div>
+  <button class="topbtn back" onclick="show('home')">⬅</button>
+  <div class="grid-wrap" id="gridWrap"></div>
+</section>
+
+<!-- ============ 著色畫面 ============ -->
+<section id="paint" class="screen">
+  <button class="topbtn" id="cvHome" onclick="show('grid')">⬅</button>
+  <div class="stage" id="stage">
+    <canvas id="paintCv"></canvas>
+    <canvas id="lineCv"></canvas>
+  </div>
+  <div class="panel">
+    <div class="color-area">
+      <canvas id="colorStrip"></canvas>
+      <div id="colorHandle"></div>
+    </div>
+    <div id="curColor"></div>
+    <div class="tools" id="toolBar"></div>
+    <div class="bottom">
+      <button id="undoBtn" title="復原">↩️</button>
+      <button id="redoBtn" title="重做">↪️</button>
+      <button id="clearBtn" title="全部清除">🗑️</button>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ======================================================================
+   圖庫：每張圖是一段 SVG 線稿（黑線、白底、區域封閉以利「填滿」工具）
+   viewBox 一律 0 0 400 400
+   ====================================================================== */
+const S = 'stroke="#000" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+const PICTURES = [
+  { name:'小貓', svg:`
+    <path d="M118 92 L92 36 Q150 52 168 80 Z" ${S}/>
+    <path d="M282 92 L308 36 Q250 52 232 80 Z" ${S}/>
+    <path d="M130 86 L114 56 Q140 64 152 82 Z" ${S}/>
+    <path d="M270 86 L286 56 Q260 64 248 82 Z" ${S}/>
+    <circle cx="200" cy="172" r="116" ${S}/>
+    <circle cx="158" cy="162" r="17" fill="#000"/><circle cx="164" cy="155" r="5" fill="#fff"/>
+    <circle cx="242" cy="162" r="17" fill="#000"/><circle cx="248" cy="155" r="5" fill="#fff"/>
+    <circle cx="128" cy="202" r="16" ${S}/>
+    <circle cx="272" cy="202" r="16" ${S}/>
+    <path d="M191 192 Q200 202 209 192 Z" ${S}/>
+    <path d="M200 200 Q200 220 184 224 M200 200 Q200 220 216 224" ${S}/>
+    <path d="M116 176 H60 M118 193 H62 M284 176 H340 M282 193 H338" ${S}/>` },
+
+  { name:'小狗', svg:`
+    <circle cx="200" cy="178" r="106" ${S}/>
+    <path d="M104 120 Q52 132 58 214 Q70 262 122 234 Q98 182 130 142 Z" ${S}/>
+    <path d="M296 120 Q348 132 342 214 Q330 262 278 234 Q302 182 270 142 Z" ${S}/>
+    <circle cx="165" cy="166" r="16" fill="#000"/><circle cx="171" cy="160" r="5" fill="#fff"/>
+    <circle cx="235" cy="166" r="16" fill="#000"/><circle cx="241" cy="160" r="5" fill="#fff"/>
+    <ellipse cx="200" cy="208" rx="20" ry="15" fill="#000"/>
+    <path d="M200 223 V242 M200 242 Q176 254 162 240 M200 242 Q224 254 238 240" ${S}/>
+    <path d="M188 250 Q200 272 212 250 Z" ${S}/>
+    <circle cx="132" cy="208" r="14" ${S}/><circle cx="268" cy="208" r="14" ${S}/>` },
+
+  { name:'小熊', svg:`
+    <circle cx="132" cy="104" r="40" ${S}/>
+    <circle cx="268" cy="104" r="40" ${S}/>
+    <circle cx="132" cy="104" r="20" ${S}/>
+    <circle cx="268" cy="104" r="20" ${S}/>
+    <circle cx="200" cy="192" r="116" ${S}/>
+    <circle cx="166" cy="176" r="15" fill="#000"/><circle cx="171" cy="170" r="4" fill="#fff"/>
+    <circle cx="234" cy="176" r="15" fill="#000"/><circle cx="239" cy="170" r="4" fill="#fff"/>
+    <ellipse cx="200" cy="220" rx="50" ry="40" ${S}/>
+    <ellipse cx="200" cy="208" rx="16" ry="12" fill="#000"/>
+    <path d="M200 220 V236 M200 236 Q185 246 174 236 M200 236 Q215 246 226 236" ${S}/>` },
+
+  { name:'兔子', svg:`
+    <path d="M172 122 Q150 28 176 24 Q202 28 190 122 Z" ${S}/>
+    <path d="M228 122 Q250 28 224 24 Q198 28 210 122 Z" ${S}/>
+    <path d="M178 112 Q166 52 180 44 Q193 52 186 112 Z" ${S}/>
+    <path d="M222 112 Q234 52 220 44 Q207 52 214 112 Z" ${S}/>
+    <circle cx="200" cy="205" r="100" ${S}/>
+    <circle cx="168" cy="195" r="15" fill="#000"/><circle cx="173" cy="189" r="4" fill="#fff"/>
+    <circle cx="232" cy="195" r="15" fill="#000"/><circle cx="237" cy="189" r="4" fill="#fff"/>
+    <path d="M192 222 Q200 230 208 222 Z" ${S}/>
+    <path d="M200 228 V240 M200 240 Q186 250 178 242 M200 240 Q214 250 222 242" ${S}/>
+    <rect x="192" y="240" width="16" height="18" ${S}/>
+    <circle cx="138" cy="222" r="14" ${S}/><circle cx="262" cy="222" r="14" ${S}/>` },
+
+  { name:'小豬', svg:`
+    <path d="M128 108 Q116 78 148 84 Q166 96 158 126 Z" ${S}/>
+    <path d="M272 108 Q284 78 252 84 Q234 96 242 126 Z" ${S}/>
+    <circle cx="200" cy="198" r="112" ${S}/>
+    <circle cx="164" cy="178" r="14" fill="#000"/><circle cx="169" cy="172" r="4" fill="#fff"/>
+    <circle cx="236" cy="178" r="14" fill="#000"/><circle cx="241" cy="172" r="4" fill="#fff"/>
+    <ellipse cx="200" cy="222" rx="50" ry="36" ${S}/>
+    <ellipse cx="184" cy="222" rx="9" ry="13" ${S}/><ellipse cx="216" cy="222" rx="9" ry="13" ${S}/>
+    <circle cx="132" cy="216" r="14" ${S}/><circle cx="268" cy="216" r="14" ${S}/>` },
+
+  { name:'青蛙', svg:`
+    <circle cx="150" cy="112" r="44" ${S}/>
+    <circle cx="250" cy="112" r="44" ${S}/>
+    <circle cx="150" cy="108" r="18" fill="#000"/><circle cx="156" cy="102" r="5" fill="#fff"/>
+    <circle cx="250" cy="108" r="18" fill="#000"/><circle cx="256" cy="102" r="5" fill="#fff"/>
+    <path d="M92 205 Q92 132 200 138 Q308 132 308 205 Q308 286 200 286 Q92 286 92 205 Z" ${S}/>
+    <path d="M148 238 Q200 274 252 238" ${S}/>
+    <circle cx="134" cy="228" r="13" ${S}/><circle cx="266" cy="228" r="13" ${S}/>` },
+
+  { name:'蝴蝶', svg:`
+    <ellipse cx="200" cy="205" rx="13" ry="78" fill="#000"/>
+    <circle cx="200" cy="124" r="14" fill="#000"/>
+    <path d="M194 116 L170 78 M206 116 L230 78" ${S}/>
+    <circle cx="170" cy="76" r="7" fill="#000"/><circle cx="230" cy="76" r="7" fill="#000"/>
+    <path d="M190 158 Q128 76 78 112 Q42 148 94 182 Q58 204 100 228 Q162 222 190 196 Z" ${S}/>
+    <path d="M210 158 Q272 76 322 112 Q358 148 306 182 Q342 204 300 228 Q238 222 210 196 Z" ${S}/>
+    <circle cx="108" cy="138" r="15" ${S}/><circle cx="104" cy="204" r="10" ${S}/>
+    <circle cx="292" cy="138" r="15" ${S}/><circle cx="296" cy="204" r="10" ${S}/>` },
+
+  { name:'小魚', svg:`
+    <path d="M60 200 Q150 96 300 136 Q360 162 360 200 Q360 238 300 264 Q150 304 60 200 Z" ${S}/>
+    <path d="M60 200 L18 144 Q44 200 18 256 Z" ${S}/>
+    <path d="M255 136 Q272 200 255 264" ${S}/>
+    <circle cx="306" cy="180" r="16" fill="#000"/><circle cx="312" cy="173" r="5" fill="#fff"/>
+    <path d="M322 196 Q336 202 322 208" ${S}/>
+    <path d="M120 200 Q140 180 160 200 Q140 220 120 200 Z" ${S}/>
+    <path d="M170 200 Q190 180 210 200 Q190 220 170 200 Z" ${S}/>
+    <circle cx="92" cy="116" r="9" ${S}/><circle cx="118" cy="82" r="6" ${S}/>` },
+
+  { name:'警車', svg:`
+    <path d="M38 302 V250 L78 250 L118 184 L292 184 L328 250 L362 250 V302 Z" ${S}/>
+    <rect x="176" y="158" width="48" height="26" rx="6" ${S}/>
+    <rect x="120" y="196" width="160" height="56" rx="16" ${S}/>
+    <circle cx="165" cy="224" r="16" fill="#000"/><circle cx="171" cy="218" r="5" fill="#fff"/>
+    <circle cx="235" cy="224" r="16" fill="#000"/><circle cx="241" cy="218" r="5" fill="#fff"/>
+    <path d="M200 196 V252" ${S}/>
+    <circle cx="120" cy="302" r="36" ${S}/><circle cx="120" cy="302" r="14" ${S}/>
+    <circle cx="290" cy="302" r="36" ${S}/><circle cx="290" cy="302" r="14" ${S}/>
+    <circle cx="352" cy="268" r="9" ${S}/>` },
+
+  { name:'小火車', svg:`
+    <rect x="60" y="152" width="170" height="138" rx="14" ${S}/>
+    <rect x="92" y="112" width="106" height="44" rx="10" ${S}/>
+    <rect x="112" y="80" width="34" height="34" rx="5" ${S}/>
+    <circle cx="145" cy="196" r="38" ${S}/>
+    <circle cx="132" cy="190" r="9" fill="#000"/><circle cx="162" cy="190" r="9" fill="#000"/>
+    <path d="M128 212 Q147 226 166 212" ${S}/>
+    <path d="M230 232 L300 232 L322 290 L230 290 Z" ${S}/>
+    <circle cx="108" cy="300" r="26" ${S}/><circle cx="186" cy="300" r="26" ${S}/><circle cx="282" cy="300" r="22" ${S}/>
+    <circle cx="148" cy="54" r="16" ${S}/><circle cx="184" cy="38" r="11" ${S}/>` },
+
+  { name:'太陽', svg:`
+    <circle cx="200" cy="200" r="92" ${S}/>
+    <path d="M200 70 V20 M200 330 V380 M70 200 H20 M330 200 H380 M110 110 L75 75 M290 110 L325 75 M110 290 L75 325 M290 290 L325 325" ${S}/>
+    <circle cx="170" cy="185" r="10" fill="#000"/><circle cx="174" cy="179" r="3" fill="#fff"/>
+    <circle cx="230" cy="185" r="10" fill="#000"/><circle cx="234" cy="179" r="3" fill="#fff"/>
+    <circle cx="148" cy="218" r="13" ${S}/><circle cx="252" cy="218" r="13" ${S}/>
+    <path d="M168 222 Q200 252 232 222" ${S}/>` },
+
+  { name:'花朵', svg:`
+    <ellipse cx="200" cy="78" rx="30" ry="44" ${S}/>
+    <ellipse cx="200" cy="222" rx="30" ry="44" ${S}/>
+    <ellipse cx="128" cy="150" rx="44" ry="30" ${S}/>
+    <ellipse cx="272" cy="150" rx="44" ry="30" ${S}/>
+    <ellipse cx="150" cy="100" rx="40" ry="28" transform="rotate(45 150 100)" ${S}/>
+    <ellipse cx="250" cy="100" rx="40" ry="28" transform="rotate(-45 250 100)" ${S}/>
+    <ellipse cx="150" cy="200" rx="40" ry="28" transform="rotate(-45 150 200)" ${S}/>
+    <ellipse cx="250" cy="200" rx="40" ry="28" transform="rotate(45 250 200)" ${S}/>
+    <circle cx="200" cy="150" r="34" ${S}/>
+    <path d="M200 184 V356" ${S}/>
+    <path d="M200 270 Q138 244 110 286 Q160 314 200 292" ${S}/>
+    <path d="M200 312 Q262 286 290 328 Q240 356 200 334" ${S}/>` },
+
+  { name:'蛋糕', svg:`
+    <path d="M64 332 H336" ${S}/>
+    <rect x="100" y="244" width="200" height="84" ${S}/>
+    <rect x="126" y="184" width="148" height="60" ${S}/>
+    <path d="M100 244 Q120 224 140 244 Q160 224 180 244 Q200 224 220 244 Q240 224 260 244 Q280 224 300 244" ${S}/>
+    <path d="M126 184 Q150 166 174 184 Q200 166 226 184 Q250 166 274 184" ${S}/>
+    <rect x="192" y="122" width="16" height="62" ${S}/>
+    <path d="M200 122 Q186 100 200 86 Q214 100 200 122 Z" ${S}/>
+    <circle cx="150" cy="284" r="9" ${S}/><circle cx="200" cy="296" r="9" ${S}/><circle cx="250" cy="284" r="9" ${S}/>` },
+
+  { name:'冰淇淋', svg:`
+    <path d="M150 200 L200 360 L250 200 Z" ${S}/>
+    <path d="M165 232 L235 232 M178 268 L222 268 M190 304 L210 304" ${S}/>
+    <circle cx="172" cy="178" r="46" ${S}/><circle cx="228" cy="178" r="46" ${S}/><circle cx="200" cy="126" r="50" ${S}/>
+    <circle cx="200" cy="80" r="14" ${S}/>` },
+
+  { name:'星星', svg:`
+    <path d="M200 60 L234 153 L333 157 L255 218 L282 313 L200 258 L118 313 L145 218 L67 157 L166 153 Z" ${S}/>
+    <circle cx="175" cy="180" r="9" fill="#000"/><circle cx="225" cy="180" r="9" fill="#000"/>
+    <path d="M178 205 Q200 225 222 205" ${S}/>
+    <circle cx="150" cy="200" r="10" ${S}/><circle cx="250" cy="200" r="10" ${S}/>` },
+
+  { name:'愛心', svg:`
+    <path d="M200 150 C170 95 90 100 95 175 C100 250 200 300 200 335 C200 300 300 250 305 175 C310 100 230 95 200 150 Z" ${S}/>
+    <circle cx="165" cy="185" r="9" fill="#000"/><circle cx="235" cy="185" r="9" fill="#000"/>
+    <path d="M170 210 Q200 232 230 210" ${S}/>
+    <circle cx="138" cy="205" r="11" ${S}/><circle cx="262" cy="205" r="11" ${S}/>` },
+
+  { name:'房子', svg:`
+    <path d="M64 200 L200 86 L336 200" ${S}/>
+    <rect x="100" y="200" width="200" height="150" ${S}/>
+    <rect x="172" y="268" width="56" height="82" ${S}/>
+    <circle cx="218" cy="312" r="5" fill="#000"/>
+    <rect x="122" y="226" width="48" height="44" ${S}/>
+    <path d="M146 226 V270 M122 248 H170" ${S}/>
+    <rect x="230" y="226" width="48" height="44" ${S}/>
+    <path d="M254 226 V270 M230 248 H278" ${S}/>
+    <rect x="240" y="120" width="34" height="60" ${S}/>
+    <circle cx="316" cy="70" r="28" ${S}/>` },
+
+  { name:'雲朵', svg:`
+    <path d="M115 205 Q72 205 78 162 Q83 124 124 130 Q134 88 184 94 Q226 88 242 130 Q296 120 300 172 Q305 208 262 208 Z" ${S}/>
+    <circle cx="150" cy="165" r="8" fill="#000"/><circle cx="210" cy="165" r="8" fill="#000"/>
+    <path d="M155 185 Q180 202 205 185" ${S}/>
+    <path d="M135 240 Q124 266 135 278 Q146 266 135 240 Z M200 250 Q189 276 200 288 Q211 276 200 250 Z M268 240 Q257 266 268 278 Q279 266 268 240 Z" ${S}/>` },
+];
+
+/* ====================== 畫面切換 ====================== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='paint') setTimeout(fitCanvas,30);
+}
+function openGrid(){ show('grid'); }
+
+/* ====================== 建立選擇格 ====================== */
+const gridWrap = document.getElementById('gridWrap');
+PICTURES.forEach((p,i)=>{
+  const d=document.createElement('div'); d.className='card';
+  d.innerHTML = `<svg viewBox="0 0 400 400">${p.svg}</svg>`;
+  d.onclick = ()=>openPicture(i);
+  gridWrap.appendChild(d);
+});
+
+/* ====================== 著色核心 ====================== */
+const RES = 1000;                         // 內部畫布解析度
+const paintCv = document.getElementById('paintCv');
+const lineCv  = document.getElementById('lineCv');
+const pctx = paintCv.getContext('2d', {willReadFrequently:true});
+const lctx = lineCv.getContext('2d');
+paintCv.width=lineCv.width=RES; paintCv.height=lineCv.height=RES;
+
+let boundary;                  // 線稿像素(用來當填色邊界)
+let curColor = '#ff2d2d';
+let curTool  = 'marker';
+let drawing=false, lastX=0,lastY=0;
+const undoStack=[], redoStack=[];
+
+function openPicture(i){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="${RES}" height="${RES}">${PICTURES[i].svg}</svg>`;
+  const img = new Image();
+  img.onload = ()=>{
+    pctx.clearRect(0,0,RES,RES);
+    pctx.fillStyle='#fff'; pctx.fillRect(0,0,RES,RES);   // 白底（填色用）
+    lctx.clearRect(0,0,RES,RES);
+    lctx.drawImage(img,0,0,RES,RES);                     // 線稿在最上層
+    boundary = lctx.getImageData(0,0,RES,RES);           // 邊界資料
+    undoStack.length=0; redoStack.length=0; updateUndoBtns();
+    show('paint'); sfx('enter');
+  };
+  img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+}
+
+/* 讓兩張 canvas 等比填滿舞台 */
+function fitCanvas(){
+  const st=document.getElementById('stage');
+  const s=Math.min(st.clientWidth, st.clientHeight);
+  const offX=(st.clientWidth-s)/2, offY=(st.clientHeight-s)/2;
+  [paintCv,lineCv].forEach(c=>{ c.style.width=s+'px'; c.style.height=s+'px'; c.style.left=offX+'px'; c.style.top=offY+'px'; });
+  drawStrip();
+}
+window.addEventListener('resize',()=>{ if(document.getElementById('paint').classList.contains('active')) fitCanvas(); });
+
+/* 座標換算 */
+function pos(e){
+  const r=paintCv.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*RES;
+  const y=(e.clientY-r.top )/r.height*RES;
+  return {x,y};
+}
+
+/* ---- 復原 / 重做 ---- */
+const snapshot=()=>pctx.getImageData(0,0,RES,RES);
+const restore =s=>pctx.putImageData(s,0,0);
+function beginAction(){                 // 修改畫布「之前」呼叫
+  undoStack.push(snapshot());
+  if(undoStack.length>25) undoStack.shift();
+  redoStack.length=0;                   // 有新動作就清空重做
+  updateUndoBtns();
+}
+function undo(){ if(!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); updateUndoBtns(); sfx('undo'); }
+function redo(){ if(!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); updateUndoBtns(); sfx('redo'); }
+function updateUndoBtns(){
+  document.getElementById('undoBtn').disabled = undoStack.length===0;
+  document.getElementById('redoBtn').disabled = redoStack.length===0;
+}
+document.getElementById('undoBtn').onclick=undo;
+document.getElementById('redoBtn').onclick=redo;
+document.getElementById('clearBtn').onclick=()=>{ beginAction(); pctx.fillStyle='#fff'; pctx.fillRect(0,0,RES,RES); sfx('clear'); };
+
+/* ---- 畫筆設定 ---- */
+let rainbowHue=0;
+function effColor(){
+  if(curTool==='eraser') return '#ffffff';
+  if(curTool==='rainbow'){ rainbowHue=(rainbowHue+9)%360; return 'hsl('+rainbowHue+',90%,55%)'; }
+  return curColor;
+}
+function applyStroke(){
+  pctx.globalAlpha=1;
+  const c=effColor(); pctx.strokeStyle=c; pctx.fillStyle=c;
+  pctx.lineCap='round'; pctx.lineJoin='round';
+  switch(curTool){
+    case 'pencil':  pctx.lineWidth=10; break;
+    case 'brush':   pctx.lineWidth=46; pctx.globalAlpha=0.8; break;
+    case 'crayon':  pctx.lineWidth=30; pctx.globalAlpha=0.9; break;
+    case 'neon':    pctx.lineWidth=44; pctx.globalAlpha=0.35; break;
+    case 'eraser':  pctx.lineWidth=52; break;
+    case 'glitter': pctx.lineWidth=34; break;
+    default:        pctx.lineWidth=26; // marker / rainbow
+  }
+}
+/* ---- 星星印章 ---- */
+function stampShape(x,y){
+  pctx.save(); pctx.globalAlpha=1; pctx.translate(x,y); pctx.scale(0.18,0.18); pctx.translate(-200,-200);
+  pctx.fillStyle=curColor; pctx.beginPath();
+  const pts=[[200,60],[234,153],[333,157],[255,218],[282,313],[200,258],[118,313],[145,218],[67,157],[166,153]];
+  pts.forEach((p,i)=> i?pctx.lineTo(p[0],p[1]):pctx.moveTo(p[0],p[1]));
+  pctx.closePath(); pctx.fill(); pctx.restore();
+}
+
+/* ---- 噴漆 ---- */
+function spray(x,y){
+  pctx.fillStyle=curColor;
+  for(let i=0;i<26;i++){
+    const a=Math.random()*6.28, r=Math.random()*34;
+    pctx.globalAlpha=0.6;
+    pctx.fillRect(x+Math.cos(a)*r, y+Math.sin(a)*r, 3,3);
+  }
+  pctx.globalAlpha=1;
+}
+/* ---- 亮粉 ---- */
+function glitter(x,y){
+  for(let i=0;i<10;i++){
+    const a=Math.random()*6.28, r=Math.random()*16;
+    pctx.fillStyle = Math.random()<.4 ? '#fff' : curColor;
+    pctx.beginPath(); pctx.arc(x+Math.cos(a)*r,y+Math.sin(a)*r,Math.random()*3+1,0,6.28); pctx.fill();
+  }
+}
+
+/* ---- 填滿（flood fill，遇黑線停止）---- */
+function fill(sx,sy){
+  sx=Math.round(sx); sy=Math.round(sy);
+  if(sx<0||sy<0||sx>=RES||sy>=RES) return;
+  const img=pctx.getImageData(0,0,RES,RES), d=img.data, b=boundary.data;
+  const idx=(sy*RES+sx)*4;
+  const tr=d[idx],tg=d[idx+1],tb=d[idx+2];
+  const nc=hexRgb(curColor);
+  if(tr===nc.r&&tg===nc.g&&tb===nc.b) return;
+  const stack=[sx,sy];
+  const match=(p)=> (Math.abs(d[p]-tr)<32 && Math.abs(d[p+1]-tg)<32 && Math.abs(d[p+2]-tb)<32);
+  const isLine=(p)=> (b[p+3]>40 && b[p]<120 && b[p+1]<120 && b[p+2]<120); // 黑色邊界
+  while(stack.length){
+    const y=stack.pop(), x=stack.pop();
+    let p=(y*RES+x)*4;
+    if(isLine(p)||!match(p)) continue;
+    // 往左
+    let xl=x; let pl=p;
+    while(xl>=0 && !isLine(pl) && match(pl)){ xl--; pl-=4; }
+    xl++; pl+=4;
+    let up=false,down=false;
+    while(xl<RES){
+      p=(y*RES+xl)*4;
+      if(isLine(p)||!match(p)) break;
+      d[p]=nc.r; d[p+1]=nc.g; d[p+2]=nc.b; d[p+3]=255;
+      if(y>0){ const q=((y-1)*RES+xl)*4; const ok=!isLine(q)&&match(q); if(ok&&!up){stack.push(xl,y-1);} up=ok; }
+      if(y<RES-1){ const q=((y+1)*RES+xl)*4; const ok=!isLine(q)&&match(q); if(ok&&!down){stack.push(xl,y+1);} down=ok; }
+      xl++;
+    }
+  }
+  pctx.putImageData(img,0,0);
+}
+function hexRgb(h){ const n=parseInt(h.slice(1),16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+
+/* ---- 指標事件 ---- */
+function start(e){
+  e.preventDefault();
+  const {x,y}=pos(e);
+  if(curTool==='fill'){ beginAction(); fill(x,y); sfx('fill'); return; }
+  beginAction();
+  drawing=true; lastX=x; lastY=y;
+  if(curTool==='spray'){ spray(x,y); sfx('draw'); return; }
+  if(curTool==='glitter'){ glitter(x,y); sfx('draw'); return; }
+  if(curTool==='stamp'){ stampShape(x,y); sfx('stamp'); return; }
+  sfx('draw'); applyStroke();
+  pctx.beginPath(); pctx.moveTo(x,y); pctx.lineTo(x+0.1,y+0.1); pctx.stroke(); // 點一下也有
+}
+function move(e){
+  if(!drawing) return; e.preventDefault();
+  const {x,y}=pos(e);
+  if(curTool==='spray'){ spray(x,y); }
+  else if(curTool==='glitter'){ glitter(x,y); }
+  else if(curTool==='stamp'){ if(Math.hypot(x-lastX,y-lastY)>55){ stampShape(x,y); lastX=x; lastY=y; } return; }
+  else { applyStroke(); pctx.beginPath(); pctx.moveTo(lastX,lastY); pctx.lineTo(x,y); pctx.stroke(); }
+  lastX=x; lastY=y;
+}
+function end(){ drawing=false; pctx.globalAlpha=1; }
+paintCv.addEventListener('pointerdown',start);
+paintCv.addEventListener('pointermove',move);
+window.addEventListener('pointerup',end);
+
+/* ====================== 色帶 ====================== */
+const strip=document.getElementById('colorStrip');
+const sctx=strip.getContext('2d',{willReadFrequently:true});
+function drawStrip(){
+  const w=strip.width=34, h=strip.height=strip.clientHeight||500; strip.height=h;
+  const g=sctx.createLinearGradient(0,0,0,h);
+  const cols=['#000000','#ff2d2d','#ff9a1f','#ffe92e','#39d353','#23b5d3','#2d5cff','#9b30ff','#ff5fb0','#ffffff'];
+  cols.forEach((c,i)=>g.addColorStop(i/(cols.length-1),c));
+  sctx.fillStyle=g; sctx.fillRect(0,0,w,h);
+}
+function pickColor(e){
+  const r=strip.getBoundingClientRect();
+  let y=(e.clientY-r.top); y=Math.max(0,Math.min(r.height-1,y));
+  const px=sctx.getImageData(0, Math.floor(y/r.height*strip.height),1,1).data;
+  curColor='#'+[px[0],px[1],px[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+  document.getElementById('curColor').style.background=curColor;
+  document.getElementById('colorHandle').style.top=y+'px';
+}
+strip.addEventListener('pointerdown',e=>{e.preventDefault();pickColor(e);sfx('pick');
+  const mv=ev=>pickColor(ev); const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);};
+  window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);});
+
+/* ====================== 工具列 ====================== */
+const TOOLS=[
+  {id:'marker', icon:'🖊️', label:'麥克筆'},
+  {id:'pencil', icon:'✏️', label:'色鉛筆'},
+  {id:'crayon', icon:'🖍️', label:'蠟筆'},
+  {id:'brush',  icon:'🖌️', label:'水彩筆'},
+  {id:'neon',   icon:'🔆', label:'螢光筆'},
+  {id:'spray',  icon:'💨', label:'噴漆'},
+  {id:'fill',   icon:'🪣', label:'填滿'},
+  {id:'glitter',icon:'✨', label:'亮粉'},
+  {id:'rainbow',icon:'🌈', label:'彩虹筆'},
+  {id:'stamp',  icon:'⭐', label:'星星印章'},
+  {id:'eraser', icon:'🧽', label:'橡皮擦'},
+];
+const toolBar=document.getElementById('toolBar');
+TOOLS.forEach(t=>{
+  const b=document.createElement('button'); b.className='tool'+(t.id===curTool?' sel':'');
+  b.textContent=t.icon; b.title=t.label; b.dataset.id=t.id;
+  b.onclick=()=>{ curTool=t.id; document.querySelectorAll('.tool').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); sfx('tool'); };
+  toolBar.appendChild(b);
+});
+
+/* ====================== 音效 / 背景音樂（即時合成，無版權）====================== */
+let actx=null, sfxGain=null, musGain=null, soundOn=true, bgmTimer=null, audioReady=false;
+function audio(){
+  if(!actx){
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+    sfxGain=actx.createGain(); sfxGain.gain.value=0.9; sfxGain.connect(actx.destination);
+    musGain=actx.createGain(); musGain.gain.value=0.5; musGain.connect(actx.destination);
+  }
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+function note(freq,dur,type,vol,dest,when=0){
+  const c=audio(), t=c.currentTime+when;
+  const o=c.createOscillator(), g=c.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(dest||sfxGain); o.start(t); o.stop(t+dur+0.03);
+}
+function swoosh(){
+  const c=audio(), t=c.currentTime, len=0.3;
+  const buf=c.createBuffer(1, c.sampleRate*len, c.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+  const src=c.createBufferSource(); src.buffer=buf;
+  const f=c.createBiquadFilter(); f.type='bandpass'; f.frequency.setValueAtTime(1800,t); f.frequency.exponentialRampToValueAtTime(400,t+len);
+  const g=c.createGain(); g.gain.value=0.5;
+  src.connect(f); f.connect(g); g.connect(sfxGain); src.start(t);
+}
+function sfx(name){
+  if(!soundOn) return; audio();
+  switch(name){
+    case 'tool':  note(540,0.08,'square',0.18); break;
+    case 'pick':  note(720,0.08,'sine',0.18); break;
+    case 'draw':  note(440,0.05,'sine',0.10); break;
+    case 'fill':  note(330,0.06,'sine',0.22); note(660,0.16,'sine',0.22,null,0.05); break;
+    case 'stamp': note(900,0.06,'triangle',0.16); note(1320,0.09,'triangle',0.13,null,0.05); break;
+    case 'undo':  note(500,0.10,'sine',0.16); note(380,0.12,'sine',0.16,null,0.06); break;
+    case 'redo':  note(500,0.10,'sine',0.16); note(680,0.12,'sine',0.16,null,0.06); break;
+    case 'clear': swoosh(); break;
+    case 'enter': [523,659,784].forEach((f,i)=>note(f,0.3,'triangle',0.16,null,i*0.07)); break;
+  }
+}
+/* 背景音樂：原創五聲音階小循環 */
+const MEL=[659,784,523,587,659,0,587,523, 440,523,659,587,523,0,392,0];
+const BAS=[131,165,175,196];
+let mstep=0;
+function bgmTick(){
+  if(!soundOn) return;
+  const f=MEL[mstep%MEL.length];
+  if(f) note(f,0.34,'triangle',0.09,musGain);
+  if(mstep%4===0) note(BAS[(mstep/4|0)%BAS.length],0.55,'sine',0.10,musGain);
+  mstep++;
+}
+function startBgm(){ if(bgmTimer) return; audio(); bgmTimer=setInterval(bgmTick,300); }
+function stopBgm(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer=null; } }
+
+const soundBtn=document.getElementById('soundBtn');
+soundBtn.onclick=()=>{
+  soundOn=!soundOn;
+  soundBtn.textContent=soundOn?'🔊':'🔇';
+  soundBtn.classList.toggle('off',!soundOn);
+  if(soundOn){ audio(); startBgm(); } else { stopBgm(); }
+};
+/* iOS 需使用者手勢才能發聲：第一次互動時啟動 */
+function startAudioOnce(){ if(audioReady) return; audioReady=true; audio(); if(soundOn) startBgm(); }
+window.addEventListener('pointerdown', startAudioOnce, {once:true});
+
+/* 初始 */
+window.addEventListener('load',()=>{ drawStrip(); document.getElementById('curColor').style.background=curColor; });
+</script>
+</body>
+</html>
