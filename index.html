@@ -55,8 +55,20 @@
 
   /* ---------- 動物選擇格 ---------- */
   #grid .back { left:18px; top:18px; background:#7ec8e3; }
+  /* 畫風選擇列 */
+  #grid .stylebar {
+    position:absolute; top:20px; left:78px; right:18px; z-index:5;
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
+  }
+  .stylebtn {
+    padding:9px 16px; border:none; border-radius:14px; cursor:pointer;
+    font-size:17px; font-weight:800; color:#fff; background:#7ec8e3;
+    box-shadow:0 3px 0 rgba(0,0,0,.18);
+  }
+  .stylebtn.sel { background:#ffb13d; box-shadow:0 0 0 3px #fff inset, 0 3px 0 rgba(0,0,0,.18); }
+  .stylebtn:active { transform:translateY(2px); box-shadow:none; }
   .grid-wrap {
-    position:absolute; inset:90px 4% 4% 4%;
+    position:absolute; inset:96px 4% 4% 4%;
     display:grid; grid-template-columns:repeat(5,1fr); grid-auto-rows:1fr; gap:2.2vmin;
     align-content:center;
   }
@@ -134,6 +146,7 @@
 <section id="grid" class="screen">
   <div class="sky"></div>
   <button class="topbtn back" onclick="show('home')">⬅</button>
+  <div class="stylebar" id="styleBar"></div>
   <div class="grid-wrap" id="gridWrap"></div>
 </section>
 
@@ -306,14 +319,48 @@ function show(id){
 }
 function openGrid(){ show('grid'); }
 
+/* ====================== 畫風（線稿風格，可切換）====================== */
+/* 用字串替換把線稿的描邊顏色與粗細換掉；fill="#000"(眼珠)維持黑色不動。
+   邊界偵測已改為「線稿層透明度」，故線可為任何顏色，填滿仍會被擋住。 */
+const STYLES=[
+  {id:'bake',  name:'烤畫', w:13, color:'#000000'},
+  {id:'thin',  name:'簡筆', w:6,  color:'#000000'},
+  {id:'crayon',name:'蠟筆', w:16, color:'#7a4a21'},
+  {id:'neon',  name:'霓虹', w:9,  color:'#b026ff'},
+  {id:'candy', name:'糖果', w:12, color:'#ff3d8b'},
+  {id:'ocean', name:'海洋', w:11, color:'#1565c0'},
+];
+let curStyle=STYLES[0];
+function styledSvg(svg, st){
+  return svg
+    .replace(/stroke="#000"/g, 'stroke="'+st.color+'"')
+    .replace(/stroke-width="\d+(?:\.\d+)?"/g, 'stroke-width="'+st.w+'"');
+}
+
 /* ====================== 建立選擇格 ====================== */
 const gridWrap = document.getElementById('gridWrap');
-PICTURES.forEach((p,i)=>{
-  const d=document.createElement('div'); d.className='card';
-  d.innerHTML = `<svg viewBox="0 0 400 400">${p.svg}</svg>`;
-  d.onclick = ()=>openPicture(i);
-  gridWrap.appendChild(d);
+function buildGrid(){
+  gridWrap.innerHTML='';
+  PICTURES.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='card';
+    d.innerHTML = `<svg viewBox="0 0 400 400">${styledSvg(p.svg,curStyle)}</svg>`;
+    d.onclick = ()=>openPicture(i);
+    gridWrap.appendChild(d);
+  });
+}
+const styleBar=document.getElementById('styleBar');
+STYLES.forEach(st=>{
+  const b=document.createElement('button');
+  b.className='stylebtn'+(st.id===curStyle.id?' sel':''); b.textContent=st.name;
+  b.onclick=()=>{
+    curStyle=st;
+    document.querySelectorAll('.stylebtn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    buildGrid(); sfx('tool');
+  };
+  styleBar.appendChild(b);
 });
+buildGrid();
 
 /* ====================== 著色核心 ====================== */
 const paintCv = document.getElementById('paintCv');
@@ -351,7 +398,7 @@ function renderBoard(){
 }
 function openPicture(i){
   curPic=i;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">${PICTURES[i].svg}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">${styledSvg(PICTURES[i].svg,curStyle)}</svg>`;
   const img = new Image();
   img.onload = ()=>{
     lineImg=img; show('paint');
@@ -466,7 +513,7 @@ function fill(sx,sy){
   if(tr===nc.r&&tg===nc.g&&tb===nc.b) return;
   const stack=[sx,sy];
   const match=(p)=> (Math.abs(d[p]-tr)<32 && Math.abs(d[p+1]-tg)<32 && Math.abs(d[p+2]-tb)<32);
-  const isLine=(p)=> (b[p+3]>40 && b[p]<120 && b[p+1]<120 && b[p+2]<120); // 黑色邊界
+  const isLine=(p)=> b[p+3]>60; // 線稿層只要有線(任何顏色)就當邊界 → 支援彩色畫風
   while(stack.length){
     const y=stack.pop(), x=stack.pop();
     let p=(y*CW+x)*4;
@@ -555,7 +602,7 @@ function audio(){
   if(!actx){
     actx=new (window.AudioContext||window.webkitAudioContext)();
     sfxGain=actx.createGain(); sfxGain.gain.value=0.9; sfxGain.connect(actx.destination);
-    musGain=actx.createGain(); musGain.gain.value=0.5; musGain.connect(actx.destination);
+    musGain=actx.createGain(); musGain.gain.value=0.4; musGain.connect(actx.destination);
   }
   if(actx.state==='suspended') actx.resume();
   return actx;
@@ -592,18 +639,27 @@ function sfx(name){
     case 'enter': [523,659,784].forEach((f,i)=>note(f,0.3,'triangle',0.16,null,i*0.07)); break;
   }
 }
-/* 背景音樂：原創五聲音階小循環 */
-const MEL=[659,784,523,587,659,0,587,523, 440,523,659,587,523,0,392,0];
-const BAS=[131,165,175,196];
+/* 背景音樂：柔和琶音循環（C–G–Am–F），sine 音色、慢速、長尾相疊、輕音量 → 不刺耳 */
+const ARP=[
+  659,784,1047,784,   // C  : E5 G5 C6 G5
+  587,784, 988,784,   // G  : D5 G5 B5 G5
+  523,659, 880,659,   // Am : C5 E5 A5 E5
+  523,698, 880,698    // F  : C5 F5 A5 F5
+];
+const BASS=[131,98,110,87]; // C3 G2 A2 F2（每小節換一次）
 let mstep=0;
 function bgmTick(){
   if(!soundOn) return;
-  const f=MEL[mstep%MEL.length];
-  if(f) note(f,0.34,'triangle',0.09,musGain);
-  if(mstep%4===0) note(BAS[(mstep/4|0)%BAS.length],0.55,'sine',0.10,musGain);
+  const f=ARP[mstep%ARP.length];
+  if(f) note(f,0.7,'sine',0.055,musGain);           // 旋律：柔和、尾音長、彼此相疊成水洗音
+  if(mstep%4===0){
+    const b=BASS[(mstep/4|0)%BASS.length];
+    note(b,1.5,'sine',0.085,musGain);               // 低音鋪底
+    note(b*2,1.2,'sine',0.035,musGain);             // 八度增厚
+  }
   mstep++;
 }
-function startBgm(){ if(bgmTimer) return; audio(); bgmTimer=setInterval(bgmTick,300); }
+function startBgm(){ if(bgmTimer) return; audio(); bgmTimer=setInterval(bgmTick,380); }
 function stopBgm(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer=null; } }
 
 const soundBtn=document.getElementById('soundBtn');
