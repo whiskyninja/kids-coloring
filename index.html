@@ -7,8 +7,12 @@
 <title>小畫家 - 兒童著色</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; }
-  html,body { height:100%; overflow:hidden; font-family:"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif; }
-  body { background:#7ec8e3; }
+  html,body {
+    height:100%; width:100%; overflow:hidden; position:fixed; inset:0;
+    overscroll-behavior:none; touch-action:none;
+    font-family:"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+  }
+  body { background:#fff; }
   .soundbtn {
     position:fixed; top:12px; right:128px; z-index:60;
     width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
@@ -16,7 +20,7 @@
   }
   .soundbtn:active { transform:translateY(3px); box-shadow:0 0 0 rgba(0,0,0,.2); }
   .soundbtn.off { filter:grayscale(1) opacity(.6); }
-  .screen { position:fixed; inset:0; display:none; }
+  .screen { position:fixed; top:0; left:0; width:100%; height:var(--app-h,100%); display:none; }
   .screen.active { display:block; }
 
   /* ---------- 共用背景 ---------- */
@@ -391,7 +395,22 @@ function fitCanvas(){
   [paintCv,lineCv].forEach(c=>{ c.style.width=s+'px'; c.style.height=s+'px'; c.style.left=offX+'px'; c.style.top=offY+'px'; });
   drawStrip();
 }
-window.addEventListener('resize',()=>{ if(document.getElementById('paint').classList.contains('active')) fitCanvas(); });
+/* 把畫面高度鎖在當下值；只在「真的」改變(轉向)時才更新，忽略 Safari 工具列收合造成的微調 → 不再忽大忽小 */
+let lockedH=0;
+function setAppSize(){
+  const h=window.innerHeight;
+  if(Math.abs(h-lockedH) < 80) return;   // 工具列伸縮(小幅) → 不動，畫面固定
+  lockedH=h;
+  document.documentElement.style.setProperty('--app-h', h+'px');
+  if(document.getElementById('paint').classList.contains('active')) fitCanvas();
+}
+window.addEventListener('resize', setAppSize);
+window.addEventListener('orientationchange', ()=> setTimeout(()=>{ lockedH=0; setAppSize(); }, 350));
+
+/* 禁止雙指縮放、雙擊放大、橡皮筋捲動 → 固定不跑掉 */
+['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev, e=>e.preventDefault()));
+document.addEventListener('dblclick', e=>e.preventDefault(), {passive:false});
+document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
 
 /* 座標換算 */
 function pos(e){
@@ -643,7 +662,9 @@ function startAudioOnce(){ if(audioReady) return; audioReady=true; audio(); if(s
 window.addEventListener('pointerdown', startAudioOnce, {once:true});
 
 /* 初始 */
-window.addEventListener('load',()=>{ drawStrip(); document.getElementById('curColor').style.background=curColor; });
+function bootSize(){ lockedH=0; setAppSize(); if(!lockedH){ lockedH=window.innerHeight; document.documentElement.style.setProperty('--app-h', lockedH+'px'); } }
+bootSize();
+window.addEventListener('load',()=>{ bootSize(); drawStrip(); document.getElementById('curColor').style.background=curColor; });
 </script>
 </body>
 </html>
