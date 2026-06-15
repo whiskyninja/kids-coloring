@@ -14,7 +14,7 @@
   }
   body { background:#fff; }
   .soundbtn {
-    position:fixed; top:12px; right:162px; z-index:60;
+    position:fixed; top:12px; right:198px; z-index:60;
     width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
     font-size:22px; background:#ffffffcc; box-shadow:0 3px 0 rgba(0,0,0,.2);
   }
@@ -73,15 +73,15 @@
   }
 
   /* ---------- 著色畫面 ---------- */
-  #paint .stage { position:absolute; inset:0 150px 0 0; background:#fff; display:grid; place-items:center; }
+  #paint .stage { position:absolute; inset:0 186px 0 0; background:#fff; display:grid; place-items:center; }
   #paint .stage canvas { position:absolute; touch-action:none; }
   #lineCv { pointer-events:none; }   /* 線稿層不攔截觸控，讓畫筆層收得到 */
   #cvHome { left:14px; top:14px; position:absolute; z-index:5; background:#7ec8e3; padding:8px 14px; }
 
   .panel {
-    position:absolute; right:0; top:0; bottom:0; width:150px;
+    position:absolute; right:0; top:0; bottom:0; width:186px;
     background:linear-gradient(#79c3cf,#5aa9b5); display:flex; flex-direction:column; align-items:center;
-    box-shadow:-3px 0 8px rgba(0,0,0,.15); z-index:10; overflow-y:auto;
+    box-shadow:-3px 0 8px rgba(0,0,0,.15); z-index:10; overflow-y:auto; touch-action:pan-y;
   }
   /* 顏色：10 個大色塊，直接點選 */
   .colors { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:10px 8px 6px; }
@@ -94,15 +94,15 @@
   /* 工具列：加大 */
   .tools { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:8px 8px 6px; }
   .tool {
-    height:56px; border-radius:14px; border:none; cursor:pointer;
-    display:grid; place-items:center; font-size:30px; background:rgba(255,255,255,.18);
+    height:64px; border-radius:16px; border:none; cursor:pointer;
+    display:grid; place-items:center; font-size:34px; background:rgba(255,255,255,.18);
     transition:transform .08s;
   }
   .tool.sel { background:rgba(255,255,255,.7); box-shadow:0 0 0 4px #ffd84d inset; transform:scale(1.06); }
   .tool:active { transform:scale(.9); }
   .bottom { flex:0 0 auto; display:flex; justify-content:center; gap:8px; padding:8px 0 16px; }
   .bottom button {
-    width:50px; height:50px; border-radius:14px; border:none; cursor:pointer; font-size:24px;
+    width:56px; height:56px; border-radius:16px; border:none; cursor:pointer; font-size:27px;
     background:#bfe2ea; box-shadow:0 3px 0 rgba(0,0,0,.18);
   }
   .bottom button:disabled { opacity:.35; box-shadow:none; }
@@ -334,13 +334,64 @@ const PICTURES = [
     <circle cx="150" cy="165" r="8" fill="#000"/><circle cx="210" cy="165" r="8" fill="#000"/>
     <path d="M155 185 Q180 202 205 185" ${S}/>
     <path d="M135 240 Q124 266 135 278 Q146 266 135 240 Z M200 250 Q189 276 200 288 Q211 276 200 250 Z M268 240 Q257 266 268 278 Q279 266 268 240 Z" ${S}/>` },
+
+  { name:'電風扇', svg:`
+    <circle cx="200" cy="150" r="100" ${S}/>
+    <circle cx="200" cy="150" r="22" ${S}/>
+    <path d="M200 150 Q150 70 200 50 Q255 75 200 150 Z" ${S}/>
+    <path d="M200 150 Q285 120 300 180 Q250 215 200 150 Z" ${S}/>
+    <path d="M200 150 Q215 245 150 245 Q110 195 200 150 Z" ${S}/>
+    <rect x="188" y="248" width="24" height="62" ${S}/>
+    <ellipse cx="200" cy="328" rx="78" ry="20" ${S}/>` },
+
+  { name:'冰箱', svg:`
+    <rect x="118" y="44" width="164" height="312" rx="20" ${S}/>
+    <path d="M118 172 H282" ${S}/>
+    <rect x="148" y="78" width="14" height="56" rx="6" ${S}/>
+    <rect x="148" y="200" width="14" height="68" rx="6" ${S}/>` },
+
+  { name:'洗衣機', svg:`
+    <rect x="106" y="64" width="188" height="288" rx="18" ${S}/>
+    <rect x="128" y="90" width="144" height="44" rx="8" ${S}/>
+    <circle cx="252" cy="112" r="11" ${S}/>
+    <circle cx="200" cy="230" r="74" ${S}/>
+    <circle cx="200" cy="230" r="50" ${S}/>` },
+
+  { name:'吹風機', svg:`
+    <rect x="116" y="116" width="156" height="84" rx="26" ${S}/>
+    <path d="M272 128 L304 116 L304 200 L272 188 Z" ${S}/>
+    <circle cx="158" cy="158" r="24" ${S}/>
+    <path d="M162 200 L146 298 L204 298 L196 200 Z" ${S}/>
+    <path d="M152 298 Q150 336 192 340" ${S}/>` },
+
+  { name:'杯子', svg:`
+    <path d="M132 124 H262 L250 300 Q246 332 197 332 Q150 332 146 300 Z" ${S}/>
+    <path d="M262 158 Q322 158 322 212 Q322 264 258 252" ${S}/>
+    <path d="M178 104 Q168 82 184 60 M212 104 Q202 82 218 60" ${S}/>` },
+
+  { name:'雨傘', svg:`
+    <path d="M58 198 Q200 56 342 198 Z" ${S}/>
+    <path d="M58 198 Q92 172 122 198 Q152 172 182 198 Q212 172 242 198 Q272 172 302 198 Q322 184 342 198" ${S}/>
+    <path d="M200 198 V322 Q200 352 168 346" ${S}/>
+    <path d="M200 88 V58" ${S}/>` },
+
+  { name:'時鐘', svg:`
+    <circle cx="200" cy="206" r="116" ${S}/>
+    <circle cx="200" cy="206" r="6" fill="#000"/>
+    <path d="M200 206 V128 M200 206 L256 236" ${S}/>
+    <path d="M200 102 V120 M200 310 V292 M102 206 H120 M300 206 H282" ${S}/>
+    <path d="M140 306 L118 342 M260 306 L282 342" ${S}/>` },
+
+  { name:'電視', svg:`
+    <rect x="74" y="86" width="252" height="176" rx="16" ${S}/>
+    <rect x="96" y="108" width="208" height="132" rx="6" ${S}/>
+    <path d="M200 262 V300 M150 302 H250" ${S}/>` },
 ];
 
 /* ====================== 畫面切換 ====================== */
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='paint') setTimeout(fitCanvas,30);
 }
 function openGrid(){ show('grid'); }
 
@@ -354,40 +405,51 @@ PICTURES.forEach((p,i)=>{
 });
 
 /* ====================== 著色核心 ====================== */
-const RES = 1000;                         // 內部畫布解析度
 const paintCv = document.getElementById('paintCv');
 const lineCv  = document.getElementById('lineCv');
 const pctx = paintCv.getContext('2d', {willReadFrequently:true});
 const lctx = lineCv.getContext('2d');
-paintCv.width=lineCv.width=RES; paintCv.height=lineCv.height=RES;
 
+let CW=1000, CH=1000;          // 畫布實際像素（滿版，依舞台大小）
 let boundary;                  // 線稿像素(用來當填色邊界)
-let curColor = '#ff2d2d';
+let curColor = '#ff3b30';
 let curTool  = 'marker';
 let drawing=false, lastX=0,lastY=0;
+let curPic=0, lineImg=null;
 const undoStack=[], redoStack=[];
 
+/* 依舞台大小把畫布設成「滿版」 */
+function sizeBoard(){
+  const st=document.getElementById('stage');
+  CW=Math.max(50,Math.round(st.clientWidth));
+  CH=Math.max(50,Math.round(st.clientHeight));
+  paintCv.width=lineCv.width=CW; paintCv.height=lineCv.height=CH;
+  [paintCv,lineCv].forEach(c=>{ c.style.width=CW+'px'; c.style.height=CH+'px'; c.style.left='0'; c.style.top='0'; });
+}
+/* 滿版白底 + 線稿置中放大重繪（會清掉著色） */
+function renderBoard(){
+  sizeBoard();
+  pctx.clearRect(0,0,CW,CH); pctx.fillStyle='#fff'; pctx.fillRect(0,0,CW,CH);
+  lctx.clearRect(0,0,CW,CH);
+  if(lineImg){
+    const scale=Math.min(CW,CH)*0.96/400;          // 圖案盡量放大、置中
+    const dw=400*scale, dh=400*scale;
+    lctx.drawImage(lineImg,(CW-dw)/2,(CH-dh)/2,dw,dh);
+  }
+  boundary=lctx.getImageData(0,0,CW,CH);
+}
 function openPicture(i){
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="${RES}" height="${RES}">${PICTURES[i].svg}</svg>`;
+  curPic=i;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">${PICTURES[i].svg}</svg>`;
   const img = new Image();
   img.onload = ()=>{
-    pctx.clearRect(0,0,RES,RES);
-    pctx.fillStyle='#fff'; pctx.fillRect(0,0,RES,RES);   // 白底（填色用）
-    lctx.clearRect(0,0,RES,RES);
-    lctx.drawImage(img,0,0,RES,RES);                     // 線稿在最上層
-    boundary = lctx.getImageData(0,0,RES,RES);           // 邊界資料
-    undoStack.length=0; redoStack.length=0; updateUndoBtns();
-    show('paint'); sfx('enter');
+    lineImg=img; show('paint');
+    requestAnimationFrame(()=>{
+      renderBoard();
+      undoStack.length=0; redoStack.length=0; updateUndoBtns(); sfx('enter');
+    });
   };
   img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
-}
-
-/* 讓兩張 canvas 等比填滿舞台 */
-function fitCanvas(){
-  const st=document.getElementById('stage');
-  const s=Math.min(st.clientWidth, st.clientHeight);
-  const offX=(st.clientWidth-s)/2, offY=(st.clientHeight-s)/2;
-  [paintCv,lineCv].forEach(c=>{ c.style.width=s+'px'; c.style.height=s+'px'; c.style.left=offX+'px'; c.style.top=offY+'px'; });
 }
 /* 把畫面高度鎖在當下值；只在「真的」改變(轉向)時才更新，忽略 Safari 工具列收合造成的微調 → 不再忽大忽小 */
 let lockedH=0;
@@ -396,7 +458,7 @@ function setAppSize(){
   if(Math.abs(h-lockedH) < 80) return;   // 工具列伸縮(小幅) → 不動，畫面固定
   lockedH=h;
   document.documentElement.style.setProperty('--app-h', h+'px');
-  if(document.getElementById('paint').classList.contains('active')) fitCanvas();
+  if(document.getElementById('paint').classList.contains('active')) renderBoard();
 }
 window.addEventListener('resize', setAppSize);
 window.addEventListener('orientationchange', ()=> setTimeout(()=>{ lockedH=0; setAppSize(); }, 350));
@@ -409,13 +471,13 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 /* 座標換算 */
 function pos(e){
   const r=paintCv.getBoundingClientRect();
-  const x=(e.clientX-r.left)/r.width*RES;
-  const y=(e.clientY-r.top )/r.height*RES;
+  const x=(e.clientX-r.left)/r.width*CW;
+  const y=(e.clientY-r.top )/r.height*CH;
   return {x,y};
 }
 
 /* ---- 復原 / 重做 ---- */
-const snapshot=()=>pctx.getImageData(0,0,RES,RES);
+const snapshot=()=>pctx.getImageData(0,0,CW,CH);
 const restore =s=>pctx.putImageData(s,0,0);
 function beginAction(){                 // 修改畫布「之前」呼叫
   undoStack.push(snapshot());
@@ -431,7 +493,7 @@ function updateUndoBtns(){
 }
 document.getElementById('undoBtn').onclick=undo;
 document.getElementById('redoBtn').onclick=redo;
-document.getElementById('clearBtn').onclick=()=>{ beginAction(); pctx.fillStyle='#fff'; pctx.fillRect(0,0,RES,RES); sfx('clear'); };
+document.getElementById('clearBtn').onclick=()=>{ beginAction(); pctx.fillStyle='#fff'; pctx.fillRect(0,0,CW,CH); sfx('clear'); };
 
 /* ---- 畫筆設定 ---- */
 let rainbowHue=0;
@@ -485,9 +547,9 @@ function glitter(x,y){
 /* ---- 填滿（flood fill，遇黑線停止）---- */
 function fill(sx,sy){
   sx=Math.round(sx); sy=Math.round(sy);
-  if(sx<0||sy<0||sx>=RES||sy>=RES) return;
-  const img=pctx.getImageData(0,0,RES,RES), d=img.data, b=boundary.data;
-  const idx=(sy*RES+sx)*4;
+  if(sx<0||sy<0||sx>=CW||sy>=CH) return;
+  const img=pctx.getImageData(0,0,CW,CH), d=img.data, b=boundary.data;
+  const idx=(sy*CW+sx)*4;
   const tr=d[idx],tg=d[idx+1],tb=d[idx+2];
   const nc=hexRgb(curColor);
   if(tr===nc.r&&tg===nc.g&&tb===nc.b) return;
@@ -496,19 +558,19 @@ function fill(sx,sy){
   const isLine=(p)=> (b[p+3]>40 && b[p]<120 && b[p+1]<120 && b[p+2]<120); // 黑色邊界
   while(stack.length){
     const y=stack.pop(), x=stack.pop();
-    let p=(y*RES+x)*4;
+    let p=(y*CW+x)*4;
     if(isLine(p)||!match(p)) continue;
     // 往左
     let xl=x; let pl=p;
     while(xl>=0 && !isLine(pl) && match(pl)){ xl--; pl-=4; }
     xl++; pl+=4;
     let up=false,down=false;
-    while(xl<RES){
-      p=(y*RES+xl)*4;
+    while(xl<CW){
+      p=(y*CW+xl)*4;
       if(isLine(p)||!match(p)) break;
       d[p]=nc.r; d[p+1]=nc.g; d[p+2]=nc.b; d[p+3]=255;
-      if(y>0){ const q=((y-1)*RES+xl)*4; const ok=!isLine(q)&&match(q); if(ok&&!up){stack.push(xl,y-1);} up=ok; }
-      if(y<RES-1){ const q=((y+1)*RES+xl)*4; const ok=!isLine(q)&&match(q); if(ok&&!down){stack.push(xl,y+1);} down=ok; }
+      if(y>0){ const q=((y-1)*CW+xl)*4; const ok=!isLine(q)&&match(q); if(ok&&!up){stack.push(xl,y-1);} up=ok; }
+      if(y<CH-1){ const q=((y+1)*CW+xl)*4; const ok=!isLine(q)&&match(q); if(ok&&!down){stack.push(xl,y+1);} down=ok; }
       xl++;
     }
   }
@@ -544,7 +606,7 @@ paintCv.addEventListener('pointermove',move);
 window.addEventListener('pointerup',end);
 
 /* ====================== 顏色：10 個大色塊 ====================== */
-const COLORS=['#ff3b30','#ff9500','#ffe000','#34c759','#5ac8fa','#0a6cff','#af52de','#ff5fa2','#8b5a2b','#1a1a1a'];
+const COLORS=['#ff3b30','#ff9500','#ffe000','#9be15d','#34c759','#00c2a8','#5ac8fa','#0a6cff','#af52de','#ff5fa2','#8b5a2b','#9e9e9e','#1a1a1a','#ffffff'];
 const colorBar=document.getElementById('colorBar');
 COLORS.forEach((c,i)=>{
   const b=document.createElement('button');
