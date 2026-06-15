@@ -14,7 +14,7 @@
   }
   body { background:#fff; }
   .soundbtn {
-    position:fixed; top:12px; right:128px; z-index:60;
+    position:fixed; top:12px; right:162px; z-index:60;
     width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
     font-size:22px; background:#ffffffcc; box-shadow:0 3px 0 rgba(0,0,0,.2);
   }
@@ -73,37 +73,36 @@
   }
 
   /* ---------- 著色畫面 ---------- */
-  #paint .stage { position:absolute; inset:0 116px 0 0; background:#fff; display:grid; place-items:center; }
+  #paint .stage { position:absolute; inset:0 150px 0 0; background:#fff; display:grid; place-items:center; }
   #paint .stage canvas { position:absolute; touch-action:none; }
   #lineCv { pointer-events:none; }   /* 線稿層不攔截觸控，讓畫筆層收得到 */
   #cvHome { left:14px; top:14px; position:absolute; z-index:5; background:#7ec8e3; padding:8px 14px; }
 
   .panel {
-    position:absolute; right:0; top:0; bottom:0; width:116px;
+    position:absolute; right:0; top:0; bottom:0; width:150px;
     background:linear-gradient(#79c3cf,#5aa9b5); display:flex; flex-direction:column; align-items:center;
-    box-shadow:-3px 0 8px rgba(0,0,0,.15); z-index:10; overflow:hidden;
+    box-shadow:-3px 0 8px rgba(0,0,0,.15); z-index:10; overflow-y:auto;
   }
-  /* 色帶：flex-basis 0 → 只吃「剩餘空間」，不會被內容撐到爆版 */
-  .color-area { position:relative; width:30px; margin:8px 0 2px; flex:1 1 0; min-height:60px; max-height:300px; display:flex; }
-  #colorStrip { width:30px; height:100%; border-radius:8px; box-shadow:inset 0 0 0 2px rgba(0,0,0,.15); }
-  #colorHandle {
-    position:absolute; left:-12px; width:0; height:0; pointer-events:none;
-    border-top:11px solid transparent; border-bottom:11px solid transparent; border-left:16px solid #6b6b6b;
-    transform:translateY(-11px);
+  /* 顏色：10 個大色塊，直接點選 */
+  .colors { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:10px 8px 6px; }
+  .swatch {
+    width:100%; aspect-ratio:1/1; border-radius:50%; border:3px solid #fff; cursor:pointer;
+    box-shadow:0 3px 5px rgba(0,0,0,.25); transition:transform .08s;
   }
-  /* 工具列 */
-  .tools { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:5px; padding:6px 6px 6px; }
+  .swatch.sel { box-shadow:0 0 0 4px #ffd84d, 0 3px 5px rgba(0,0,0,.25); transform:scale(1.12); }
+  .swatch:active { transform:scale(.9); }
+  /* 工具列：加大 */
+  .tools { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:8px 8px 6px; }
   .tool {
-    height:40px; border-radius:11px; border:none; cursor:pointer;
-    display:grid; place-items:center; font-size:21px; background:rgba(255,255,255,.0);
+    height:56px; border-radius:14px; border:none; cursor:pointer;
+    display:grid; place-items:center; font-size:30px; background:rgba(255,255,255,.18);
     transition:transform .08s;
   }
-  .tool.sel { background:rgba(255,255,255,.55); box-shadow:0 0 0 3px #ffd84d inset; transform:scale(1.05); }
+  .tool.sel { background:rgba(255,255,255,.7); box-shadow:0 0 0 4px #ffd84d inset; transform:scale(1.06); }
   .tool:active { transform:scale(.9); }
-  #curColor { flex:0 0 auto; width:46px; height:26px; border-radius:10px; border:3px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.3); margin-top:4px; }
-  .bottom { flex:0 0 auto; display:flex; gap:5px; padding:6px 0 12px; }
+  .bottom { flex:0 0 auto; display:flex; justify-content:center; gap:8px; padding:8px 0 16px; }
   .bottom button {
-    width:34px; height:38px; border-radius:11px; border:none; cursor:pointer; font-size:17px;
+    width:50px; height:50px; border-radius:14px; border:none; cursor:pointer; font-size:24px;
     background:#bfe2ea; box-shadow:0 3px 0 rgba(0,0,0,.18);
   }
   .bottom button:disabled { opacity:.35; box-shadow:none; }
@@ -140,11 +139,7 @@
     <canvas id="lineCv"></canvas>
   </div>
   <div class="panel">
-    <div class="color-area">
-      <canvas id="colorStrip"></canvas>
-      <div id="colorHandle"></div>
-    </div>
-    <div id="curColor"></div>
+    <div class="colors" id="colorBar"></div>
     <div class="tools" id="toolBar"></div>
     <div class="bottom">
       <button id="undoBtn" title="復原">↩️</button>
@@ -393,7 +388,6 @@ function fitCanvas(){
   const s=Math.min(st.clientWidth, st.clientHeight);
   const offX=(st.clientWidth-s)/2, offY=(st.clientHeight-s)/2;
   [paintCv,lineCv].forEach(c=>{ c.style.width=s+'px'; c.style.height=s+'px'; c.style.left=offX+'px'; c.style.top=offY+'px'; });
-  drawStrip();
 }
 /* 把畫面高度鎖在當下值；只在「真的」改變(轉向)時才更新，忽略 Safari 工具列收合造成的微調 → 不再忽大忽小 */
 let lockedH=0;
@@ -549,27 +543,16 @@ paintCv.addEventListener('pointerdown',start);
 paintCv.addEventListener('pointermove',move);
 window.addEventListener('pointerup',end);
 
-/* ====================== 色帶 ====================== */
-const strip=document.getElementById('colorStrip');
-const sctx=strip.getContext('2d',{willReadFrequently:true});
-function drawStrip(){
-  const w=strip.width=34, h=strip.height=strip.clientHeight||500; strip.height=h;
-  const g=sctx.createLinearGradient(0,0,0,h);
-  const cols=['#000000','#ff2d2d','#ff9a1f','#ffe92e','#39d353','#23b5d3','#2d5cff','#9b30ff','#ff5fb0','#ffffff'];
-  cols.forEach((c,i)=>g.addColorStop(i/(cols.length-1),c));
-  sctx.fillStyle=g; sctx.fillRect(0,0,w,h);
-}
-function pickColor(e){
-  const r=strip.getBoundingClientRect();
-  let y=(e.clientY-r.top); y=Math.max(0,Math.min(r.height-1,y));
-  const px=sctx.getImageData(0, Math.floor(y/r.height*strip.height),1,1).data;
-  curColor='#'+[px[0],px[1],px[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
-  document.getElementById('curColor').style.background=curColor;
-  document.getElementById('colorHandle').style.top=y+'px';
-}
-strip.addEventListener('pointerdown',e=>{e.preventDefault();pickColor(e);sfx('pick');
-  const mv=ev=>pickColor(ev); const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);};
-  window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);});
+/* ====================== 顏色：10 個大色塊 ====================== */
+const COLORS=['#ff3b30','#ff9500','#ffe000','#34c759','#5ac8fa','#0a6cff','#af52de','#ff5fa2','#8b5a2b','#1a1a1a'];
+const colorBar=document.getElementById('colorBar');
+COLORS.forEach((c,i)=>{
+  const b=document.createElement('button');
+  b.className='swatch'+(i===0?' sel':''); b.style.background=c; b.dataset.c=c;
+  b.onclick=()=>{ curColor=c; document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); sfx('pick'); };
+  colorBar.appendChild(b);
+});
+curColor=COLORS[0];
 
 /* ====================== 工具列 ====================== */
 const TOOLS=[
@@ -664,7 +647,7 @@ window.addEventListener('pointerdown', startAudioOnce, {once:true});
 /* 初始 */
 function bootSize(){ lockedH=0; setAppSize(); if(!lockedH){ lockedH=window.innerHeight; document.documentElement.style.setProperty('--app-h', lockedH+'px'); } }
 bootSize();
-window.addEventListener('load',()=>{ bootSize(); drawStrip(); document.getElementById('curColor').style.background=curColor; });
+window.addEventListener('load', bootSize);
 </script>
 </body>
 </html>
