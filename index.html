@@ -95,6 +95,20 @@
       linear-gradient(115deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 30%);
   }
   #cvHome { left:14px; top:14px; position:absolute; z-index:5; background:#7ec8e3; padding:8px 14px; }
+  /* 貼紙挑選列：只有選「貼紙」工具時出現 */
+  #stickerTray {
+    position:absolute; left:8px; right:8px; bottom:8px; z-index:8;
+    display:none; gap:6px; padding:8px; border-radius:16px;
+    background:rgba(255,255,255,.9); box-shadow:0 3px 12px rgba(0,0,0,.2);
+    overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch; touch-action:pan-x;
+  }
+  #stickerTray.show { display:flex; }
+  #stickerTray button {
+    flex:0 0 auto; width:52px; height:52px; border:none; border-radius:12px;
+    background:#fff; font-size:30px; cursor:pointer; box-shadow:0 2px 0 rgba(0,0,0,.12);
+  }
+  #stickerTray button.sel { box-shadow:0 0 0 3px #ffd84d, 0 2px 0 rgba(0,0,0,.12); }
+  #stickerTray button:active { transform:translateY(2px); }
 
   .panel {
     position:absolute; right:0; top:0; bottom:0; width:186px;
@@ -157,6 +171,7 @@
     <canvas id="paintCv"></canvas>
     <canvas id="lineCv"></canvas>
     <div class="gloss"></div>
+    <div id="stickerTray"></div>
   </div>
   <div class="panel">
     <div class="colors" id="colorBar"></div>
@@ -370,6 +385,7 @@ const lctx = lineCv.getContext('2d');
 
 let CW=1000, CH=1000;          // 畫布實際像素（滿版，依舞台大小）
 let boundary;                  // 線稿像素(用來當填色邊界)
+let bgMask=null;               // 背景遮罩(1=圖案外的背景)，魔法塗色用：背景不塗
 let curColor = '#ff3b30';
 let curTool  = 'marker';
 let drawing=false, lastX=0,lastY=0;
@@ -395,6 +411,35 @@ function renderBoard(){
     lctx.drawImage(lineImg,(CW-dw)/2,(CH-dh)/2,dw,dh);
   }
   boundary=lctx.getImageData(0,0,CW,CH);
+  computeBgMask();
+}
+/* 算出「背景」：從畫布四邊往內擴散、不跨線稿能到達的區域就是圖案外的背景。
+   魔法塗色只塗「非背景」的封閉區，所以塗到圖外面不會有作用。 */
+function computeBgMask(){
+  const b=boundary.data, N=CW*CH;
+  bgMask=new Uint8Array(N);
+  const stack=[];
+  const seed=(x,y)=>{ const i=y*CW+x; if(!bgMask[i] && b[i*4+3]<=60){ bgMask[i]=1; stack.push(i); } };
+  for(let x=0;x<CW;x++){ seed(x,0); seed(x,CH-1); }
+  for(let y=0;y<CH;y++){ seed(0,y); seed(CW-1,y); }
+  while(stack.length){
+    const i=stack.pop(), x=i%CW, y=(i/CW)|0;
+    const tryp=j=>{ if(!bgMask[j] && b[j*4+3]<=60){ bgMask[j]=1; stack.push(j); } };
+    if(x>0) tryp(i-1);
+    if(x<CW-1) tryp(i+1);
+    if(y>0) tryp(i-CW);
+    if(y<CH-1) tryp(i+CW);
+  }
+}
+/* 魔法塗色：點/拖曳到哪，就把那塊封閉區填滿；背景與線上不作用 → 小小孩亂塗也不出界 */
+function magicAt(x,y){
+  const sx=Math.round(x), sy=Math.round(y);
+  if(sx<0||sy<0||sx>=CW||sy>=CH) return;
+  if(bgMask && bgMask[sy*CW+sx]) return;          // 背景不塗
+  const px=pctx.getImageData(sx,sy,1,1).data;     // 先看一眼，已同色就跳過(省效能)
+  const nc=hexRgb(curColor);
+  if(px[0]===nc.r && px[1]===nc.g && px[2]===nc.b) return;
+  fill(sx,sy);
 }
 function openPicture(i){
   curPic=i;
@@ -483,6 +528,17 @@ function stampShape(x,y){
   pctx.closePath(); pctx.fill(); pctx.restore();
 }
 
+/* ---- 貼紙 ---- */
+let curSticker='⭐';
+function placeSticker(x,y){
+  pctx.save(); pctx.globalAlpha=1;
+  const size=Math.min(CW,CH)*0.16;
+  pctx.font=size+'px "Apple Color Emoji","Segoe UI Emoji",serif';
+  pctx.textAlign='center'; pctx.textBaseline='middle';
+  pctx.fillText(curSticker, x, y);
+  pctx.restore();
+}
+
 /* ---- 噴漆 ---- */
 function spray(x,y){
   pctx.fillStyle=curColor;
@@ -546,6 +602,8 @@ function start(e){
   if(curTool==='spray'){ spray(x,y); sfx('draw'); return; }
   if(curTool==='glitter'){ glitter(x,y); sfx('draw'); return; }
   if(curTool==='stamp'){ stampShape(x,y); sfx('stamp'); return; }
+  if(curTool==='magic'){ magicAt(x,y); sfx('fill'); return; }
+  if(curTool==='sticker'){ placeSticker(x,y); sfx('stamp'); return; }
   sfx('draw'); applyStroke();
   pctx.beginPath(); pctx.moveTo(x,y); pctx.lineTo(x+0.1,y+0.1); pctx.stroke(); // 點一下也有
 }
@@ -555,6 +613,8 @@ function move(e){
   if(curTool==='spray'){ spray(x,y); }
   else if(curTool==='glitter'){ glitter(x,y); }
   else if(curTool==='stamp'){ if(Math.hypot(x-lastX,y-lastY)>55){ stampShape(x,y); lastX=x; lastY=y; } return; }
+  else if(curTool==='magic'){ if(Math.hypot(x-lastX,y-lastY)>16){ magicAt(x,y); lastX=x; lastY=y; } return; }
+  else if(curTool==='sticker'){ if(Math.hypot(x-lastX,y-lastY)>80){ placeSticker(x,y); lastX=x; lastY=y; } return; }
   else { applyStroke(); pctx.beginPath(); pctx.moveTo(lastX,lastY); pctx.lineTo(x,y); pctx.stroke(); }
   lastX=x; lastY=y;
 }
@@ -583,17 +643,30 @@ const TOOLS=[
   {id:'neon',   icon:'🔆', label:'螢光筆'},
   {id:'spray',  icon:'💨', label:'噴漆'},
   {id:'fill',   icon:'🪣', label:'填滿'},
+  {id:'magic',  icon:'🪄', label:'魔法塗色'},
   {id:'glitter',icon:'✨', label:'亮粉'},
   {id:'rainbow',icon:'🌈', label:'彩虹筆'},
   {id:'stamp',  icon:'⭐', label:'星星印章'},
+  {id:'sticker',icon:'🎀', label:'貼紙'},
   {id:'eraser', icon:'🧽', label:'橡皮擦'},
 ];
 const toolBar=document.getElementById('toolBar');
 TOOLS.forEach(t=>{
   const b=document.createElement('button'); b.className='tool'+(t.id===curTool?' sel':'');
   b.textContent=t.icon; b.title=t.label; b.dataset.id=t.id;
-  b.onclick=()=>{ curTool=t.id; document.querySelectorAll('.tool').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); sfx('tool'); };
+  b.onclick=()=>{ curTool=t.id; document.querySelectorAll('.tool').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); sfx('tool');
+    document.getElementById('stickerTray').classList.toggle('show', t.id==='sticker'); };
   toolBar.appendChild(b);
+});
+
+/* ====================== 貼紙挑選列 ====================== */
+const STICKERS=['⭐','❤️','🌸','🦋','🌈','🐱','🎀','👑','🍓','🐞','🌟','🍦','🐠','☀️','🍀','😀','🐶','🦄'];
+const stickerTray=document.getElementById('stickerTray');
+STICKERS.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.textContent=s; b.className=(i===0?'sel':'');
+  b.onclick=()=>{ curSticker=s; document.querySelectorAll('#stickerTray button').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); sfx('pick'); };
+  stickerTray.appendChild(b);
 });
 
 /* ====================== 音效 / 背景音樂（即時合成，無版權）====================== */
