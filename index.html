@@ -380,6 +380,8 @@ function styledSvg(svg, st){
 
 /* ====================== 建立選擇格 ====================== */
 const gridWrap = document.getElementById('gridWrap');
+/* 每張圖的著色成果(影像)，切換圖案會保留；只放記憶體，重整網頁(refresh)後自然清空 */
+let saved={};
 function buildGrid(){
   gridWrap.innerHTML='';
   PICTURES.forEach((p,i)=>{
@@ -418,8 +420,6 @@ let curTool  = 'marker';
 let drawing=false, lastX=0,lastY=0;
 let curPic=0, lineImg=null;
 const undoStack=[], redoStack=[];
-/* 每張圖的著色成果(影像)，切換圖案會保留；只放記憶體，重整網頁(refresh)後自然清空 */
-let saved={};
 function saveCurrent(){
   if(curPic==null) return;
   try{ saved[curPic]=paintCv.toDataURL('image/png'); }catch(e){}
