@@ -14,7 +14,7 @@
   }
   body { background:#fff; }
   .soundbtn {
-    position:fixed; top:12px; right:198px; z-index:60;
+    position:fixed; top:12px; right:260px; z-index:60;
     width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
     font-size:22px; background:#ffffffcc; box-shadow:0 3px 0 rgba(0,0,0,.2);
   }
@@ -85,7 +85,7 @@
   }
 
   /* ---------- 著色畫面 ---------- */
-  #paint .stage { position:absolute; inset:0 186px 0 0; background:#fff; display:grid; place-items:center; }
+  #paint .stage { position:absolute; inset:0 248px 0 0; background:#fff; display:grid; place-items:center; }
   #paint .stage canvas { position:absolute; touch-action:none; }
   #lineCv { pointer-events:none; }   /* 線稿層不攔截觸控，讓畫筆層收得到 */
   #paint .stage .gloss {
@@ -111,32 +111,33 @@
   #stickerTray button:active { transform:translateY(2px); }
 
   .panel {
-    position:absolute; right:0; top:0; bottom:0; width:186px;
-    background:linear-gradient(#79c3cf,#5aa9b5); display:flex; flex-direction:column; align-items:center;
-    box-shadow:-3px 0 8px rgba(0,0,0,.15); z-index:10; overflow-y:auto; touch-action:pan-y;
+    position:absolute; right:0; top:0; bottom:0; width:248px;
+    background:linear-gradient(#79c3cf,#5aa9b5); display:flex; flex-direction:row;
+    box-shadow:-3px 0 8px rgba(0,0,0,.15); z-index:10;
   }
-  /* 顏色：10 個大色塊，直接點選 */
-  .colors { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:10px 8px 6px; }
+  /* 顏色：自成一直欄，14 色一次全部顯示 */
+  .colcol { flex:0 0 52px; display:flex; flex-direction:column; gap:6px;
+    justify-content:center; padding:8px 5px; }
   .swatch {
     width:100%; aspect-ratio:1/1; border-radius:50%; border:3px solid #fff; cursor:pointer;
     box-shadow:0 3px 5px rgba(0,0,0,.25); transition:transform .08s;
   }
-  .swatch.sel { box-shadow:0 0 0 4px #ffd84d, 0 3px 5px rgba(0,0,0,.25); transform:scale(1.12); }
+  .swatch.sel { box-shadow:0 0 0 4px #ffd84d, 0 3px 5px rgba(0,0,0,.25); transform:scale(1.1); }
   .swatch:active { transform:scale(.9); }
-  /* 工具列：加大 */
-  .tools { width:100%; flex:0 0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:8px 8px 6px; }
+  /* 工具 + 動作鈕：另成一欄，工具自動撐滿、一次顯示完整 */
+  .toolcol { flex:1; display:flex; flex-direction:column; min-height:0; padding:8px 8px 10px 2px; }
+  .tools { flex:1; min-height:0; display:grid; grid-template-columns:repeat(2,1fr); grid-auto-rows:1fr; gap:7px; }
   .tool {
-    height:64px; border-radius:16px; border:none; cursor:pointer;
-    display:grid; place-items:center; font-size:34px; background:rgba(255,255,255,.18);
-    transition:transform .08s;
+    border-radius:16px; border:none; cursor:pointer; min-height:0;
+    display:grid; place-items:center; background:rgba(255,255,255,.18); transition:transform .08s;
   }
-  .tool svg { width:48px; height:48px; display:block; pointer-events:none;
+  .tool svg { width:72%; height:72%; max-width:50px; max-height:50px; display:block; pointer-events:none;
     filter:drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
   .tool.sel { background:rgba(255,255,255,.7); box-shadow:0 0 0 4px #ffd84d inset; transform:scale(1.06); }
   .tool:active { transform:scale(.9); }
-  .bottom { flex:0 0 auto; display:flex; justify-content:center; gap:8px; padding:8px 0 16px; }
+  .bottom { flex:0 0 auto; display:flex; justify-content:center; gap:8px; padding-top:8px; }
   .bottom button {
-    width:56px; height:56px; border-radius:16px; border:none; cursor:pointer; font-size:27px;
+    width:52px; height:52px; border-radius:14px; border:none; cursor:pointer; font-size:25px;
     background:#bfe2ea; box-shadow:0 3px 0 rgba(0,0,0,.18);
   }
   .bottom button:disabled { opacity:.35; box-shadow:none; }
@@ -175,12 +176,14 @@
     <div id="stickerTray"></div>
   </div>
   <div class="panel">
-    <div class="colors" id="colorBar"></div>
-    <div class="tools" id="toolBar"></div>
-    <div class="bottom">
-      <button id="undoBtn" title="復原">↩️</button>
-      <button id="redoBtn" title="重做">↪️</button>
-      <button id="clearBtn" title="全部清除">🗑️</button>
+    <div class="colcol" id="colorBar"></div>
+    <div class="toolcol">
+      <div class="tools" id="toolBar"></div>
+      <div class="bottom">
+        <button id="undoBtn" title="復原">↩️</button>
+        <button id="redoBtn" title="重做">↪️</button>
+        <button id="clearBtn" title="全部清除">🗑️</button>
+      </div>
     </div>
   </div>
 </section>
