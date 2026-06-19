@@ -79,7 +79,7 @@
     box-shadow:0 5px 0 rgba(0,0,0,.12); transition:transform .08s;
   }
   .card:active { transform:scale(.94); }
-  .card svg { width:82%; height:82%; }
+  .card svg, .card img { width:82%; height:82%; object-fit:contain; }
   .card .lock {
     position:absolute; right:6px; bottom:6px; width:26px; height:26px; border-radius:50%;
     background:#7bc043; display:grid; place-items:center; font-size:15px; box-shadow:0 2px 3px rgba(0,0,0,.3);
@@ -204,126 +204,44 @@ const S = 'stroke="#000" stroke-width="7" fill="none" stroke-linecap="round" str
 /* SG = 烤畫/彩繪玻璃風：超粗黑框、圖案切成格子 */
 const SG = 'stroke="#000" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"';
 const PICTURES = [
-  { name:'蝴蝶✨', svg:`
-    <circle cx="200" cy="118" r="15" ${SG}/>
-    <path d="M193 108 Q176 78 168 60 M207 108 Q224 78 232 60" ${SG}/>
-    <path d="M200 132 Q216 175 212 232 Q200 272 200 272 Q200 272 188 232 Q184 175 200 132 Z" ${SG}/>
-    <path d="M196 150 Q118 66 68 108 Q36 140 70 176 Q120 202 192 196 Z" ${SG}/>
-    <path d="M204 150 Q282 66 332 108 Q364 140 330 176 Q280 202 208 196 Z" ${SG}/>
-    <path d="M194 202 Q128 210 98 262 Q88 304 142 302 Q186 292 196 246 Z" ${SG}/>
-    <path d="M206 202 Q272 210 302 262 Q312 304 258 302 Q214 292 204 246 Z" ${SG}/>
-    <circle cx="112" cy="132" r="22" ${SG}/>
-    <circle cx="288" cy="132" r="22" ${SG}/>
-    <circle cx="138" cy="262" r="14" ${SG}/>
-    <circle cx="262" cy="262" r="14" ${SG}/>` },
-
-  { name:'愛心✨', svg:`
-    <path d="M200 152 C166 96 86 104 92 180 C98 256 200 306 200 340 C200 306 302 256 308 180 C314 104 234 96 200 152 Z" ${SG}/>
-    <path d="M200 182 C182 154 134 158 138 198 C143 244 200 280 200 296 C200 280 257 244 262 198 C266 158 218 154 200 182 Z" ${SG}/>
-    <circle cx="156" cy="184" r="13" ${SG}/>` },
-
-  { name:'花朵✨', svg:`
-    <path d="M200 150 Q165 92 200 58 Q235 92 200 150 Z" transform="rotate(0 200 192)" ${SG}/>
-    <path d="M200 150 Q165 92 200 58 Q235 92 200 150 Z" transform="rotate(60 200 192)" ${SG}/>
-    <path d="M200 150 Q165 92 200 58 Q235 92 200 150 Z" transform="rotate(120 200 192)" ${SG}/>
-    <path d="M200 150 Q165 92 200 58 Q235 92 200 150 Z" transform="rotate(180 200 192)" ${SG}/>
-    <path d="M200 150 Q165 92 200 58 Q235 92 200 150 Z" transform="rotate(240 200 192)" ${SG}/>
-    <path d="M200 150 Q165 92 200 58 Q235 92 200 150 Z" transform="rotate(300 200 192)" ${SG}/>
-    <circle cx="200" cy="192" r="46" ${SG}/>
-    <circle cx="200" cy="192" r="22" ${SG}/>
-    <path d="M200 238 V356" ${SG}/>
-    <path d="M200 300 Q150 276 120 312 M200 320 Q250 296 280 332" ${SG}/>` },
-
-  { name:'小魚✨', svg:`
-    <path d="M70 205 Q160 105 290 145 Q350 170 350 205 Q350 240 290 265 Q160 305 70 205 Z" ${SG}/>
-    <path d="M70 205 L22 152 Q50 205 22 258 Z" ${SG}/>
-    <path d="M250 150 Q268 205 250 260" ${SG}/>
-    <circle cx="300" cy="185" r="15" ${SG}/>
-    <path d="M120 205 Q150 180 180 205 M180 205 Q210 180 240 205" ${SG}/>
-    <path d="M105 235 Q135 212 165 235 M165 235 Q195 212 225 235" ${SG}/>` },
-
-  { name:'太陽✨', svg:`
-    <circle cx="200" cy="200" r="88" ${SG}/>
-    <circle cx="200" cy="200" r="52" ${SG}/>
-    <path d="M200 68 V22 M200 332 V378 M68 200 H22 M332 200 H378 M112 112 L80 80 M288 112 L320 80 M112 288 L80 320 M288 288 L320 320" ${SG}/>
-    <circle cx="182" cy="195" r="8" fill="#000"/><circle cx="218" cy="195" r="8" fill="#000"/>
-    <path d="M180 222 Q200 244 220 222" ${SG}/>` },
-
-  { name:'星星✨', svg:`
-    <path d="M200 56 L236 150 L338 154 L258 218 L286 316 L200 260 L114 316 L142 218 L62 154 L164 150 Z" ${SG}/>
-    <path d="M200 112 L222 170 L284 172 L236 210 L252 270 L200 236 L148 270 L164 210 L116 172 L178 170 Z" ${SG}/>` },
-
-  { name:'彩虹✨', svg:`
-    <path d="M64 300 A136 136 0 0 1 336 300" ${SG}/>
-    <path d="M108 300 A92 92 0 0 1 292 300" ${SG}/>
-    <path d="M148 300 A52 52 0 0 1 252 300" ${SG}/>
-    <path d="M64 300 H336" ${SG}/>
-    <path d="M40 308 Q22 308 26 288 Q31 270 51 276 Q60 256 86 262 Q108 258 108 284 Q126 286 120 308 Z" ${SG}/>
-    <path d="M360 308 Q378 308 374 288 Q369 270 349 276 Q340 256 314 262 Q292 258 292 284 Q274 286 280 308 Z" ${SG}/>` },
-
-  { name:'海豚✨', svg:`
-    <path d="M90 250 Q110 130 235 132 Q300 134 332 92 Q322 152 282 178 Q330 200 300 252 Q252 300 168 296 Q108 292 90 250 Z" ${SG}/>
-    <path d="M210 134 Q236 96 256 132 Z" ${SG}/>
-    <path d="M180 252 Q200 292 238 286 Q212 256 180 252 Z" ${SG}/>
-    <path d="M120 238 Q185 272 258 252" ${SG}/>
-    <circle cx="150" cy="188" r="9" fill="#000"/>` },
-
-  { name:'烏龜✨', svg:`
-    <path d="M100 240 Q100 132 200 132 Q300 132 300 240 Z" ${SG}/>
-    <path d="M100 240 H300" ${SG}/>
-    <path d="M200 158 L236 180 L236 216 L200 238 L164 216 L164 180 Z" ${SG}/>
-    <path d="M164 180 Q132 176 112 200 M236 180 Q268 176 288 200 M164 216 Q142 236 122 240 M236 216 Q258 236 278 240 M200 132 V158 M200 238 V240" ${SG}/>
-    <circle cx="326" cy="224" r="26" ${SG}/><circle cx="336" cy="217" r="5" fill="#000"/>
-    <ellipse cx="135" cy="260" rx="24" ry="14" ${SG}/><ellipse cx="265" cy="260" rx="24" ry="14" ${SG}/>` },
-
-  { name:'瓢蟲✨', svg:`
-    <circle cx="200" cy="215" r="120" ${SG}/>
-    <path d="M140 132 Q200 70 260 132 Z" ${SG}/>
-    <path d="M200 132 V332" ${SG}/>
-    <circle cx="150" cy="200" r="22" ${SG}/><circle cx="250" cy="200" r="22" ${SG}/>
-    <circle cx="160" cy="272" r="18" ${SG}/><circle cx="240" cy="272" r="18" ${SG}/>
-    <circle cx="178" cy="108" r="8" fill="#000"/><circle cx="222" cy="108" r="8" fill="#000"/>
-    <path d="M172 82 L156 60 M228 82 L244 60" ${SG}/>` },
-
-  { name:'小鳥✨', svg:`
-    <circle cx="200" cy="210" r="102" ${SG}/>
-    <path d="M200 210 Q262 194 302 246 Q250 272 200 210 Z" ${SG}/>
-    <path d="M150 252 Q200 300 250 252" ${SG}/>
-    <circle cx="166" cy="182" r="10" fill="#000"/>
-    <path d="M104 200 L68 216 L104 232 Z" ${SG}/>
-    <path d="M180 116 Q190 90 206 114 M206 114 Q220 94 232 120" ${SG}/>
-    <path d="M180 308 V338 M222 308 V338" ${SG}/>` },
-
-  { name:'草莓✨', svg:`
-    <path d="M200 360 Q108 300 108 212 Q108 150 200 150 Q292 150 292 212 Q292 300 200 360 Z" ${SG}/>
-    <path d="M200 155 L168 118 L196 142 L200 102 L204 142 L232 118 Z" ${SG}/>
-    <path d="M168 205 l10 14 M212 198 l10 14 M150 250 l10 14 M204 252 l10 14 M248 244 l10 14 M182 302 l9 12 M232 296 l9 12" ${SG}/>` },
-
-  { name:'螃蟹✨', svg:`
-    <ellipse cx="200" cy="222" rx="112" ry="80" ${SG}/>
-    <path d="M170 144 V112 M230 144 V112" ${SG}/>
-    <circle cx="170" cy="102" r="14" ${SG}/><circle cx="230" cy="102" r="14" ${SG}/>
-    <path d="M178 252 Q200 270 222 252" ${SG}/>
-    <path d="M96 200 Q40 178 30 210 Q40 246 80 236 M30 210 Q16 194 26 178" ${SG}/>
-    <path d="M304 200 Q360 178 370 210 Q360 246 320 236 M370 210 Q384 194 374 178" ${SG}/>
-    <path d="M108 272 L62 302 M124 286 L84 322 M292 272 L338 302 M276 286 L316 322" ${SG}/>` },
-
-  { name:'小貓✨', svg:`
-    <path d="M120 110 L92 48 Q150 64 170 96 Z" ${SG}/>
-    <path d="M280 110 L308 48 Q250 64 230 96 Z" ${SG}/>
-    <circle cx="200" cy="198" r="118" ${SG}/>
-    <circle cx="158" cy="182" r="18" ${SG}/><circle cx="242" cy="182" r="18" ${SG}/>
-    <circle cx="158" cy="182" r="6" fill="#000"/><circle cx="242" cy="182" r="6" fill="#000"/>
-    <path d="M188 214 Q200 228 212 214 Z" ${SG}/>
-    <path d="M200 224 Q200 246 182 250 M200 224 Q200 246 218 250" ${SG}/>
-    <path d="M120 200 H64 M122 220 H68 M280 200 H336 M278 220 H332" ${SG}/>
-    <circle cx="135" cy="232" r="20" ${SG}/><circle cx="265" cy="232" r="20" ${SG}/>` },
-
-  { name:'冰淇淋✨', svg:`
-    <path d="M150 196 L200 360 L250 196 Z" ${SG}/>
-    <path d="M170 236 L230 236 M182 282 L218 282 M178 196 L208 320 M222 196 L194 320" ${SG}/>
-    <circle cx="172" cy="170" r="46" ${SG}/><circle cx="228" cy="170" r="46" ${SG}/><circle cx="200" cy="120" r="50" ${SG}/>
-    <circle cx="200" cy="74" r="16" ${SG}/><path d="M200 58 Q210 40 226 42" ${SG}/>` },
+  { name:'小貓🐟', img:"pics/kitty-cat-with-fish.png" },
+  { name:'獅子🧶', img:"pics/playful-lion-with-yarn.png" },
+  { name:'兔子🥕', img:"pics/bunny-with-carrot.png" },
+  { name:'兔子🥬', img:"pics/bunny-eating-lettuce.png" },
+  { name:'斑馬', img:"pics/zebra-running.png" },
+  { name:'斑馬家族', img:"pics/zebra-family-trio.png" },
+  { name:'大猩猩', img:"pics/gorilla-brushing-teeth.png" },
+  { name:'松鼠', img:"pics/squirrel-with-acorn-sack_aJeb50.png" },
+  { name:'大象🎩', img:"pics/elephant-with-hat_7f9U0J.png" },
+  { name:'大象🎪', img:"pics/elephant-on-ball_eIhcgQ.png" },
+  { name:'海豚', img:"pics/curious-dolphin_PmBNZ7.png" },
+  { name:'海豚🐚', img:"pics/dolphin-and-shell_5IrAdK.png" },
+  { name:'水獺寶寶', img:"pics/otter-with-tiny-baby.png" },
+  { name:'水獺🐟', img:"pics/otter-with-a-little-fish.png" },
+  { name:'水獺⚽', img:"pics/otter-with-a-ball.png" },
+  { name:'水獺抱魚', img:"pics/otter-hugging-a-fish.png" },
+  { name:'螃蟹', img:"pics/crab-walking-sideways_X5uYad.png" },
+  { name:'紅鶴', img:"pics/flamingo-splashing_L5xkx8.png" },
+  { name:'水母👓', img:"pics/jelly-fish-with-glasses_NSRQzf.png" },
+  { name:'水母😴', img:"pics/sleepy-jelly-fish_buKVKb.png" },
+  { name:'水母😊', img:"pics/smiling-jelly-fish_E0sLn1.png" },
+  { name:'海星😊', img:"pics/smiling-starfish_2aMAmI.png" },
+  { name:'海星🌟', img:"pics/starfish-with-patterned-arms_KVH0qh.png" },
+  { name:'貝殼珍珠', img:"pics/seashell-with-pearl_wsGJvg.png" },
+  { name:'蜜蜂🍭', img:"pics/bee-with-lollipop_Xco599.png" },
+  { name:'蜜蜂🌷', img:"pics/bee-and-big-tulip_yKWbQt.png" },
+  { name:'蜜蜂🍄', img:"pics/bee-on-mushroom-cap_Jfh5BP.png" },
+  { name:'蜜蜂🍯', img:"pics/bee-with-honey-pot_1UYKbr.png" },
+  { name:'蜘蛛🍃', img:"pics/spider-holding-leaf.png" },
+  { name:'變色龍🌈', img:"pics/chameleon-with-patterned-back_sbMVZ0.png" },
+  { name:'變色龍👅', img:"pics/chameleon-with-tongue-out_p9OoEX.png" },
+  { name:'小龍🎩', img:"pics/dragon-wearing-hat.png" },
+  { name:'小恐龍', img:"pics/baby-dragon-sitting.png" },
+  { name:'太陽🎀', img:"pics/sun-with-bow_TfGqX0.png" },
+  { name:'太陽😎', img:"pics/happy-sun-with-sunglasses_Brej3L.png" },
+  { name:'蘑菇', img:"pics/smiling-mushroom-with-spots_pYhiHF.png" },
+  { name:'香蕉鞦韆', img:"pics/banana-on-swing_XBBccN.png" },
+  { name:'香蕉皮', img:"pics/banana-peel_Bhf8Fs.png" },
 
   { name:'蝸牛✨', svg:`
     <path d="M64 296 C44 296 46 266 76 262 C150 252 230 256 320 260 C356 262 372 282 360 298 C350 310 120 310 92 306 C76 304 70 302 64 296 Z" ${SG}/>
@@ -351,192 +269,8 @@ const PICTURES = [
     <circle cx="120" cy="302" r="36" ${SG}/><circle cx="120" cy="302" r="14" ${SG}/>
     <circle cx="290" cy="302" r="36" ${SG}/><circle cx="290" cy="302" r="14" ${SG}/>
     <circle cx="352" cy="268" r="9" ${SG}/>` },
-
-  { name:'蘋果✨', svg:`
-    <path d="M196 142 C150 110 98 140 102 200 C106 270 162 322 200 332 C238 322 294 270 298 200 C302 140 250 110 204 142 Q200 152 196 142 Z" ${SG}/>
-    <path d="M200 142 Q202 106 184 82" ${SG}/>
-    <path d="M206 110 Q238 84 272 102 Q244 124 206 118 Z" ${SG}/>` },
-
-  { name:'西瓜✨', svg:`
-    <path d="M64 144 H336 A136 136 0 0 1 64 144 Z" ${SG}/>
-    <path d="M92 152 H308 A108 108 0 0 1 92 152" ${SG}/>
-    <path d="M150 192 l8 14 M200 202 v16 M250 192 l-8 14 M180 244 l4 14 M222 244 l-4 14 M200 170 v12" ${SG}/>` },
-
-  { name:'甜甜圈✨', svg:`
-    <circle cx="200" cy="200" r="118" ${SG}/>
-    <circle cx="200" cy="200" r="46" ${SG}/>
-    <path d="M150 142 l8 9 M210 132 v12 M262 156 l-8 9 M120 210 l11 3 M150 262 l7 -9 M250 262 l-7 -9 M280 205 l-11 3 M196 268 h10" ${SG}/>` },
-
-  { name:'香蕉✨', svg:`
-    <path d="M104 144 Q120 250 210 284 Q300 300 330 220 Q286 264 210 250 Q150 236 138 150 Q130 134 116 138 Q106 138 104 144 Z" ${SG}/>
-    <path d="M118 138 L108 120" ${SG}/>
-    <path d="M330 220 L346 210" ${SG}/>` },
-
-  { name:'汽車✨', svg:`
-    <path d="M48 268 V222 L96 222 L140 168 L268 168 L300 222 L352 222 V268 Z" ${SG}/>
-    <rect x="150" y="178" width="52" height="42" rx="6" ${SG}/>
-    <rect x="210" y="178" width="52" height="42" rx="6" ${SG}/>
-    <circle cx="120" cy="272" r="34" ${SG}/><circle cx="120" cy="272" r="13" ${SG}/>
-    <circle cx="288" cy="272" r="34" ${SG}/><circle cx="288" cy="272" r="13" ${SG}/>
-    <circle cx="344" cy="240" r="8" ${SG}/>` },
-
-  { name:'公車✨', svg:`
-    <rect x="48" y="118" width="304" height="162" rx="24" ${SG}/>
-    <path d="M48 200 H352" ${SG}/>
-    <rect x="132" y="140" width="50" height="44" rx="6" ${SG}/>
-    <rect x="196" y="140" width="50" height="44" rx="6" ${SG}/>
-    <rect x="260" y="140" width="62" height="44" rx="6" ${SG}/>
-    <rect x="78" y="138" width="42" height="130" rx="6" ${SG}/>
-    <circle cx="112" cy="280" r="30" ${SG}/><circle cx="112" cy="280" r="11" ${SG}/>
-    <circle cx="288" cy="280" r="30" ${SG}/><circle cx="288" cy="280" r="11" ${SG}/>` },
-
-  { name:'火車✨', svg:`
-    <path d="M56 252 V150 H214 V112 H300 V252 Z" ${SG}/>
-    <rect x="228" y="130" width="52" height="44" rx="6" ${SG}/>
-    <rect x="92" y="90" width="38" height="46" ${SG}/>
-    <ellipse cx="111" cy="84" rx="26" ry="10" ${SG}/>
-    <rect x="86" y="178" width="118" height="50" rx="8" ${SG}/>
-    <path d="M40 252 H316" ${SG}/>
-    <circle cx="100" cy="268" r="22" ${SG}/><circle cx="100" cy="268" r="8" ${SG}/>
-    <circle cx="170" cy="268" r="22" ${SG}/><circle cx="170" cy="268" r="8" ${SG}/>
-    <circle cx="258" cy="268" r="22" ${SG}/><circle cx="258" cy="268" r="8" ${SG}/>` },
-
-  { name:'飛機✨', svg:`
-    <path d="M60 200 L300 176 Q342 178 352 200 Q342 222 300 224 L60 200 Z" ${SG}/>
-    <path d="M150 188 L120 118 L152 122 L212 184 Z" ${SG}/>
-    <path d="M150 212 L120 282 L152 278 L212 216 Z" ${SG}/>
-    <path d="M72 196 L44 166 L62 196 L44 234 L72 204 Z" ${SG}/>
-    <circle cx="298" cy="200" r="14" ${SG}/>
-    <circle cx="252" cy="194" r="9" ${SG}/><circle cx="220" cy="192" r="9" ${SG}/>` },
-
-  { name:'帆船✨', svg:`
-    <path d="M70 256 H330 L300 312 H100 Z" ${SG}/>
-    <path d="M200 58 V252" ${SG}/>
-    <path d="M212 76 L302 232 L212 232 Z" ${SG}/>
-    <path d="M188 92 L98 232 L188 232 Z" ${SG}/>
-    <path d="M96 288 Q138 304 180 288 Q222 272 264 288 Q306 304 334 290" ${SG}/>` },
-
-  { name:'火箭✨', svg:`
-    <path d="M200 56 Q258 120 258 230 H142 Q142 120 200 56 Z" ${SG}/>
-    <circle cx="200" cy="150" r="26" ${SG}/>
-    <path d="M142 200 L96 268 L142 246 Z" ${SG}/>
-    <path d="M258 200 L304 268 L258 246 Z" ${SG}/>
-    <path d="M142 230 H258 V252 H142 Z" ${SG}/>
-    <path d="M176 252 Q186 300 176 330 M200 252 Q210 306 200 338 M224 252 Q234 300 224 330" ${SG}/>` },
-
-  { name:'雲朵✨', svg:`
-    <path d="M120 252 Q70 252 70 212 Q70 172 116 172 Q122 132 168 134 Q196 98 244 122 Q300 112 306 162 Q346 166 344 208 Q344 252 300 252 Z" ${SG}/>` },
-
-  { name:'月亮✨', svg:`
-    <path d="M250 64 Q150 80 150 200 Q150 320 250 336 Q170 300 170 200 Q170 100 250 64 Z" ${SG}/>
-    <circle cx="206" cy="172" r="7" fill="#000"/>
-    <path d="M198 202 Q210 212 224 202" ${SG}/>
-    <circle cx="244" cy="150" r="9" ${SG}/><circle cx="252" cy="252" r="7" ${SG}/>` },
-
-  { name:'皇冠✨', svg:`
-    <path d="M64 288 L64 150 L132 206 L200 104 L268 206 L336 150 L336 288 Z" ${SG}/>
-    <path d="M64 288 H336" ${SG}/>
-    <circle cx="64" cy="150" r="12" ${SG}/><circle cx="200" cy="104" r="12" ${SG}/><circle cx="336" cy="150" r="12" ${SG}/>
-    <circle cx="120" cy="256" r="11" ${SG}/><circle cx="200" cy="256" r="11" ${SG}/><circle cx="280" cy="256" r="11" ${SG}/>` },
-
-  { name:'公主✨', svg:`
-    <path d="M152 110 Q150 58 200 54 Q250 58 248 110 Q262 170 236 206 M152 110 Q138 170 164 206" ${SG}/>
-    <circle cx="200" cy="124" r="46" ${SG}/>
-    <path d="M172 92 L186 78 L200 92 L214 78 L228 92 Z" ${SG}/>
-    <circle cx="184" cy="124" r="5" fill="#000"/><circle cx="216" cy="124" r="5" fill="#000"/>
-    <path d="M188 144 Q200 152 212 144" ${SG}/>
-    <path d="M200 170 L148 322 Q200 344 252 322 Z" ${SG}/>
-    <path d="M176 172 Q200 196 224 172" ${SG}/>
-    <path d="M166 246 Q200 264 234 246" ${SG}/>` },
-
-  { name:'城堡✨', svg:`
-    <path d="M40 322 H360" ${SG}/>
-    <rect x="64" y="172" width="56" height="150" ${SG}/>
-    <path d="M54 172 L92 120 L130 172 Z" ${SG}/>
-    <rect x="280" y="172" width="56" height="150" ${SG}/>
-    <path d="M270 172 L308 120 L346 172 Z" ${SG}/>
-    <rect x="150" y="150" width="100" height="172" ${SG}/>
-    <path d="M140 150 L200 90 L260 150 Z" ${SG}/>
-    <path d="M178 322 V250 Q200 224 222 250 V322" ${SG}/>
-    <rect x="92" y="200" width="26" height="30" ${SG}/>
-    <rect x="282" y="200" width="26" height="30" ${SG}/>
-    <rect x="186" y="178" width="28" height="34" ${SG}/>
-    <path d="M200 90 V66 L230 76 L200 86" ${SG}/>` },
-
-  { name:'魔法棒✨', svg:`
-    <path d="M270 72 L286 118 L334 118 L295 146 L310 192 L270 164 L230 192 L245 146 L206 118 L254 118 Z" ${SG}/>
-    <path d="M252 172 L142 286" ${SG}/>
-    <circle cx="124" cy="252" r="4" fill="#000"/><circle cx="170" cy="306" r="4" fill="#000"/><circle cx="116" cy="300" r="4" fill="#000"/>` },
-
-  { name:'戒指✨', svg:`
-    <circle cx="200" cy="244" r="78" ${SG}/>
-    <circle cx="200" cy="244" r="52" ${SG}/>
-    <path d="M164 176 L200 82 L236 176 Z" ${SG}/>
-    <path d="M164 176 H236" ${SG}/>
-    <path d="M184 176 L200 82 L216 176" ${SG}/>` },
-
-  { name:'鏡子✨', svg:`
-    <circle cx="200" cy="146" r="82" ${SG}/>
-    <circle cx="200" cy="146" r="58" ${SG}/>
-    <path d="M200 228 V322" ${SG}/>
-    <path d="M176 322 Q200 346 224 322 Q230 300 200 298 Q170 300 176 322 Z" ${SG}/>
-    <path d="M172 124 Q190 106 212 116" ${SG}/>` },
-
-  { name:'鑽石✨', svg:`
-    <path d="M120 148 H280 L332 200 L200 332 L68 200 Z" ${SG}/>
-    <path d="M120 148 L160 200 H240 L280 148" ${SG}/>
-    <path d="M68 200 H332" ${SG}/>
-    <path d="M160 200 L200 332 L240 200" ${SG}/>` },
-
-  { name:'蝴蝶結✨', svg:`
-    <path d="M200 200 L104 150 Q72 200 104 250 Z" ${SG}/>
-    <path d="M200 200 L296 150 Q328 200 296 250 Z" ${SG}/>
-    <rect x="182" y="178" width="36" height="44" rx="8" ${SG}/>
-    <path d="M184 222 L152 306 L182 288 M216 222 L248 306 L218 288" ${SG}/>` },
-
-  { name:'暴龍✨', svg:`
-    <path d="M68 282 Q108 252 142 250 Q142 168 204 158 Q210 116 276 116 Q318 116 318 158 Q318 186 286 192 Q300 240 278 272 L278 296 L250 296 L250 256 Q226 250 216 256 L208 296 L180 296 L184 256 Q110 256 68 282 Z" ${SG}/>
-    <circle cx="296" cy="146" r="7" fill="#000"/>
-    <path d="M286 170 H316" ${SG}/>
-    <path d="M168 200 L138 188 L168 212" ${SG}/>
-    <path d="M150 168 Q160 154 150 142 M176 164 Q186 150 176 138 M200 162 Q210 148 200 136" ${SG}/>` },
-
-  { name:'長頸龍✨', svg:`
-    <path d="M78 300 Q66 232 120 222 Q140 218 160 224 Q168 156 214 124 Q244 104 264 74 Q272 58 292 64 Q298 82 286 96 Q296 114 280 126 Q252 152 244 202 Q280 212 300 234 Q322 258 300 300 L270 300 Q268 252 240 246 Q212 252 212 300 L182 300 Q182 252 152 246 Q120 252 120 300 Z" ${SG}/>
-    <circle cx="278" cy="86" r="6" fill="#000"/>` },
-
-  { name:'三角龍✨', svg:`
-    <path d="M88 292 Q88 212 168 202 Q178 156 248 156 Q258 128 298 126 L330 138 L316 164 Q344 168 350 200 Q360 230 332 244 L300 244 Q300 274 280 292 L252 292 Q252 252 232 248 Q150 248 150 292 Z" ${SG}/>
-    <path d="M298 126 L292 96 M322 134 L338 108 M250 156 L242 128" ${SG}/>
-    <circle cx="296" cy="160" r="6" fill="#000"/>` },
-
-  { name:'劍龍✨', svg:`
-    <path d="M80 286 Q90 214 162 204 Q204 156 272 174 Q314 184 322 232 Q324 262 302 286 L278 286 Q278 256 260 252 Q232 252 230 286 L202 286 Q202 254 184 250 Q120 254 122 286 Z" ${SG}/>
-    <path d="M150 200 L162 152 L184 196 Z" ${SG}/>
-    <path d="M192 190 L212 142 L234 186 Z" ${SG}/>
-    <path d="M242 186 L264 146 L282 190 Z" ${SG}/>
-    <circle cx="300" cy="208" r="6" fill="#000"/>` },
-
-  { name:'翼龍✨', svg:`
-    <path d="M196 206 L66 158 Q86 196 64 232 Q120 214 184 224 Z" ${SG}/>
-    <path d="M204 206 L334 158 Q314 196 336 232 Q280 214 216 224 Z" ${SG}/>
-    <path d="M200 196 Q216 198 214 226 Q210 258 200 278 Q190 258 186 226 Q184 198 200 196 Z" ${SG}/>
-    <path d="M204 200 L228 168 L250 178 L214 198" ${SG}/>
-    <circle cx="210" cy="192" r="4" fill="#000"/>` },
-
-  { name:'恐龍蛋✨', svg:`
-    <ellipse cx="200" cy="212" rx="108" ry="138" ${SG}/>
-    <path d="M96 202 L130 186 L120 216 L158 200 L148 228 L188 212 L178 238 L216 222 L208 248 L248 232 L238 258 L302 234" ${SG}/>
-    <circle cx="158" cy="150" r="12" ${SG}/><circle cx="246" cy="162" r="9" ${SG}/><circle cx="200" cy="300" r="14" ${SG}/>` },
-
-  { name:'火山✨', svg:`
-    <path d="M48 324 L150 146 Q200 124 250 146 L352 324 Z" ${SG}/>
-    <path d="M150 146 Q176 166 200 156 Q224 166 250 146" ${SG}/>
-    <path d="M164 150 Q158 104 180 84 Q170 116 192 124 Q186 92 208 76 Q202 114 224 120 Q218 98 238 88 Q232 132 240 150" ${SG}/>
-    <path d="M150 246 L196 300 L240 246 L274 294" ${SG}/>
-    <circle cx="186" cy="74" r="6" ${SG}/><circle cx="232" cy="66" r="8" ${SG}/>` },
-
 ];
+
 
 /* ====================== 畫面切換 ====================== */
 function show(id){
@@ -549,12 +283,11 @@ function openGrid(){ show('grid'); }
 
 /* ====================== 分類（每個分頁顯示不同圖片）====================== */
 const CATS=[
-  {id:'animal', name:'🐾 動物', names:['蝴蝶✨','小魚✨','海豚✨','烏龜✨','瓢蟲✨','小鳥✨','螃蟹✨','小貓✨','蝸牛✨']},
-  {id:'food',   name:'🍓 食物', names:['草莓✨','冰淇淋✨','蘋果✨','西瓜✨','甜甜圈✨','香蕉✨']},
-  {id:'car',    name:'🚗 交通', names:['警車✨','汽車✨','公車✨','火車✨','飛機✨','帆船✨','火箭✨']},
-  {id:'nature', name:'🌈 自然', names:['太陽✨','星星✨','彩虹✨','花朵✨','愛心✨','雲朵✨','月亮✨']},
-  {id:'princess',name:'👑 公主', names:['皇冠✨','公主✨','城堡✨','魔法棒✨','戒指✨','鏡子✨','鑽石✨','蝴蝶結✨']},
-  {id:'dino',   name:'🦕 恐龍', names:['暴龍✨','長頸龍✨','三角龍✨','劍龍✨','翼龍✨','恐龍蛋✨','火山✨']},
+  {id:'animal', name:'🐾 動物', names:['小貓🐟','獅子🧶','兔子🥕','兔子🥬','斑馬','斑馬家族','大猩猩','松鼠','大象🎩','大象🎪','蝸牛✨']},
+  {id:'sea',    name:'🌊 海洋', names:['海豚','海豚🐚','水獺寶寶','水獺🐟','水獺⚽','水獺抱魚','螃蟹','紅鶴','水母👓','水母😴','水母😊','海星😊','海星🌟','貝殼珍珠']},
+  {id:'bug',    name:'🦎 蟲蟲恐龍', names:['蜜蜂🍭','蜜蜂🌷','蜜蜂🍄','蜜蜂🍯','蜘蛛🍃','變色龍🌈','變色龍👅','小龍🎩','小恐龍']},
+  {id:'nature', name:'🌞 自然', names:['太陽🎀','太陽😎','蘑菇','香蕉鞦韆','香蕉皮']},
+  {id:'car',    name:'🚗 交通', names:['警車✨']},
 ];
 let curCat=0;
 
@@ -568,7 +301,7 @@ function buildGrid(){
   PICTURES.forEach((p,i)=>{
     if(!names.includes(p.name)) return;
     const d=document.createElement('div'); d.className='card';
-    d.innerHTML = `<svg viewBox="0 0 400 400">${p.svg}</svg>`;
+    d.innerHTML = p.img ? `<img src="${p.img}" alt="">` : `<svg viewBox="0 0 400 400">${p.svg}</svg>`;
     if(saved[i]) d.insertAdjacentHTML('beforeend','<div class="done">✓</div>');
     d.onclick = ()=>openPicture(i);
     gridWrap.appendChild(d);
@@ -628,8 +361,9 @@ function renderBoard(){
   pctx.clearRect(0,0,CW,CH); pctx.fillStyle='#fff'; pctx.fillRect(0,0,CW,CH);
   lctx.clearRect(0,0,CW,CH);
   if(lineImg){
-    const scale=Math.min(CW,CH)*0.96/400;          // 圖案盡量放大、置中
-    const dw=400*scale, dh=400*scale;
+    const iw=lineImg.naturalWidth||400, ih=lineImg.naturalHeight||400;
+    const scale=Math.min(CW*0.96/iw, CH*0.96/ih);  // 等比例置中放最大
+    const dw=iw*scale, dh=ih*scale;
     lctx.drawImage(lineImg,(CW-dw)/2,(CH-dh)/2,dw,dh);
   }
   boundary=lctx.getImageData(0,0,CW,CH);
@@ -665,7 +399,7 @@ function magicAt(x,y){
 }
 function openPicture(i){
   curPic=i;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">${PICTURES[i].svg}</svg>`;
+  const P=PICTURES[i];
   const img = new Image();
   img.onload = ()=>{
     lineImg=img; show('paint');
@@ -674,7 +408,11 @@ function openPicture(i){
       undoStack.length=0; redoStack.length=0; updateUndoBtns(); sfx('enter');
     });
   };
-  img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+  if(P.img){ img.src=P.img; }
+  else {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">${P.svg}</svg>`;
+    img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+  }
 }
 /* 把畫面高度鎖在當下值；只在「真的」改變(轉向)時才更新，忽略 Safari 工具列收合造成的微調 → 不再忽大忽小 */
 let lockedH=0;
